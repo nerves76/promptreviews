@@ -3,6 +3,7 @@
 import Image from 'next/image';
 import { applyCardTransparency } from '@/utils/colorUtils';
 import { Proposal, ProposalCustomSection, ProposalLineItem } from '@/features/proposals/types';
+import StarRating from '@/app/(app)/dashboard/widget/components/shared/StarRating';
 import { formatSowNumber } from '@/features/proposals/sowHelpers';
 
 export interface StyleConfig {
@@ -214,14 +215,55 @@ export function BrandedProposalView({
             {section.title && (
               <h3 className="text-lg font-semibold" style={{ color }}>{section.title}</h3>
             )}
-            {section.subtitle && (
-              <p className="text-sm mt-0.5 mb-2" style={{ color: mutedColor }}>{section.subtitle}</p>
-            )}
-            {!section.subtitle && section.title && <div className="mb-2" />}
-            {section.body && (
-              <div className="text-sm whitespace-pre-wrap leading-relaxed" style={{ color }}>
-                {section.body}
-              </div>
+            {section.type === 'reviews' && section.reviews && section.reviews.length > 0 ? (
+              <>
+                {section.title && <div className="mb-4" />}
+                <div className="grid gap-4 sm:grid-cols-2">
+                  {section.reviews.map((review) => (
+                    <div
+                      key={review.id}
+                      className="rounded-xl p-4"
+                      style={{
+                        backgroundColor: `${color}08`,
+                        border: `1px solid ${color}15`,
+                      }}
+                    >
+                      <StarRating rating={review.star_rating} size={14} />
+                      <p
+                        className="text-sm leading-relaxed mt-2 line-clamp-4"
+                        style={{ color }}
+                      >
+                        {review.review_content}
+                      </p>
+                      <div className="flex items-center gap-2 mt-3">
+                        <span className="text-sm font-medium" style={{ color }}>
+                          {review.reviewer_name}
+                        </span>
+                        {review.platform && (
+                          <span
+                            className="text-xs px-1.5 py-0.5 rounded"
+                            style={{ color: mutedColor, backgroundColor: `${color}0A` }}
+                          >
+                            {review.platform}
+                          </span>
+                        )}
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              </>
+            ) : (
+              <>
+                {section.subtitle && (
+                  <p className="text-sm mt-0.5 mb-2" style={{ color: mutedColor }}>{section.subtitle}</p>
+                )}
+                {!section.subtitle && section.title && <div className="mb-2" />}
+                {section.body && (
+                  <div className="text-sm whitespace-pre-wrap leading-relaxed" style={{ color }}>
+                    {section.body}
+                  </div>
+                )}
+              </>
             )}
           </div>
         ))}

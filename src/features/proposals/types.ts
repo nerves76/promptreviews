@@ -46,12 +46,23 @@ export interface ProposalLineItem {
 
 // --- Custom Sections ---
 
+export interface ProposalReviewItem {
+  id: string;
+  reviewer_name: string;
+  star_rating: number;
+  review_content: string;
+  platform?: string;
+  created_at?: string;
+}
+
 export interface ProposalCustomSection {
   id: string;
+  type?: 'text' | 'reviews';
   title: string;
   subtitle?: string;
   body: string;
   position: number;
+  reviews?: ProposalReviewItem[];
 }
 
 // --- Proposal Signature ---

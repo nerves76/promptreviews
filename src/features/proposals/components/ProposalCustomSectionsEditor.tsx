@@ -1,10 +1,12 @@
 'use client';
 
 import { useState } from 'react';
-import { ProposalCustomSection } from '../types';
+import { ProposalCustomSection, ProposalReviewItem } from '../types';
 import { SavedSectionsModal } from './SavedSectionsModal';
 import { SaveSectionModal } from './SaveSectionModal';
 import { EnhanceSectionModal } from './EnhanceSectionModal';
+import { ReviewPickerModal } from './ReviewPickerModal';
+import StarRating from '@/app/(app)/dashboard/widget/components/shared/StarRating';
 import Icon from '@/components/Icon';
 
 interface ProposalCustomSectionsEditorProps {
@@ -20,6 +22,7 @@ export function ProposalCustomSectionsEditor({ sections, onChange }: ProposalCus
   const [showImportModal, setShowImportModal] = useState(false);
   const [saveTarget, setSaveTarget] = useState<ProposalCustomSection | null>(null);
   const [enhanceTarget, setEnhanceTarget] = useState<ProposalCustomSection | null>(null);
+  const [reviewPickerTarget, setReviewPickerTarget] = useState<string | null>(null);
 
   const addSection = () => {
     const newSection: ProposalCustomSection = {
@@ -29,6 +32,20 @@ export function ProposalCustomSectionsEditor({ sections, onChange }: ProposalCus
       position: sections.length,
     };
     onChange([...sections, newSection]);
+  };
+
+  const addReviewsSection = () => {
+    const id = generateId();
+    const newSection: ProposalCustomSection = {
+      id,
+      type: 'reviews',
+      title: 'What our clients say',
+      body: '',
+      position: sections.length,
+      reviews: [],
+    };
+    onChange([...sections, newSection]);
+    setReviewPickerTarget(id);
   };
 
   const removeSection = (id: string) => {
@@ -62,10 +79,34 @@ export function ProposalCustomSectionsEditor({ sections, onChange }: ProposalCus
     onChange([...sections, newSection]);
   };
 
+  const handleAddReviews = (sectionId: string, newReviews: ProposalReviewItem[]) => {
+    onChange(
+      sections.map((s) => {
+        if (s.id !== sectionId) return s;
+        const existing = s.reviews || [];
+        const existingIds = new Set(existing.map((r) => r.id));
+        const deduped = newReviews.filter((r) => !existingIds.has(r.id));
+        return { ...s, reviews: [...existing, ...deduped] };
+      })
+    );
+  };
+
+  const removeReview = (sectionId: string, reviewId: string) => {
+    onChange(
+      sections.map((s) => {
+        if (s.id !== sectionId) return s;
+        return { ...s, reviews: (s.reviews || []).filter((r) => r.id !== reviewId) };
+      })
+    );
+  };
+
+  const isReviewsSection = (s: ProposalCustomSection) => s.type === 'reviews';
+
   return (
     <div className="space-y-4">
       {sections.map((section, index) => (
         <div key={section.id} className="border border-gray-200 rounded-lg p-4 bg-gray-50">
+          {/* Header row — shared between text and reviews sections */}
           <div className="flex items-center gap-2 mb-3">
             <div className="flex flex-col gap-0.5">
               <button
@@ -91,20 +132,27 @@ export function ProposalCustomSectionsEditor({ sections, onChange }: ProposalCus
               type="text"
               value={section.title}
               onChange={(e) => updateSection(section.id, 'title', e.target.value)}
-              placeholder="Section title"
+              placeholder={isReviewsSection(section) ? 'Reviews section title' : 'Section title'}
               className="flex-1 border border-gray-300 rounded px-3 py-1.5 text-sm font-medium focus:outline-none focus:ring-2 focus:ring-slate-blue focus:ring-offset-1"
               aria-label="Section title"
             />
-            <button
-              type="button"
-              onClick={() => setSaveTarget(section)}
-              disabled={!section.title.trim()}
-              className="p-1.5 text-gray-400 hover:text-slate-blue transition-colors disabled:opacity-30 disabled:cursor-not-allowed"
-              aria-label="Save section to library"
-              title="Save to library"
-            >
-              <Icon name="FaSave" size={14} />
-            </button>
+            {isReviewsSection(section) && (section.reviews?.length ?? 0) > 0 && (
+              <span className="text-xs text-gray-500 bg-gray-200 px-2 py-0.5 rounded-full whitespace-nowrap">
+                {section.reviews!.length} review{section.reviews!.length === 1 ? '' : 's'}
+              </span>
+            )}
+            {!isReviewsSection(section) && (
+              <button
+                type="button"
+                onClick={() => setSaveTarget(section)}
+                disabled={!section.title.trim()}
+                className="p-1.5 text-gray-400 hover:text-slate-blue transition-colors disabled:opacity-30 disabled:cursor-not-allowed"
+                aria-label="Save section to library"
+                title="Save to library"
+              >
+                <Icon name="FaSave" size={14} />
+              </button>
+            )}
             <button
               type="button"
               onClick={() => removeSection(section.id)}
@@ -114,34 +162,79 @@ export function ProposalCustomSectionsEditor({ sections, onChange }: ProposalCus
               <Icon name="FaTrash" size={14} />
             </button>
           </div>
-          <input
-            type="text"
-            value={section.subtitle || ''}
-            onChange={(e) => updateSection(section.id, 'subtitle', e.target.value)}
-            placeholder="Subtitle (optional)"
-            className="w-full border border-gray-300 rounded px-3 py-1.5 text-sm text-gray-600 focus:outline-none focus:ring-2 focus:ring-slate-blue focus:ring-offset-1 mb-2"
-            aria-label="Section subtitle"
-          />
-          <div className="flex justify-end mb-1">
-            <button
-              type="button"
-              onClick={() => setEnhanceTarget(section)}
-              disabled={section.body.trim().length < 10}
-              className="flex items-center gap-1.5 px-2.5 py-1 text-xs font-medium text-slate-blue hover:bg-slate-blue/10 rounded-md transition-colors disabled:opacity-30 disabled:cursor-not-allowed"
-              aria-label="Enhance section with AI"
-            >
-              <Icon name="prompty" size={16} className="text-slate-blue" />
-              Enhance with AI
-            </button>
-          </div>
-          <textarea
-            value={section.body}
-            onChange={(e) => updateSection(section.id, 'body', e.target.value)}
-            placeholder="Section content..."
-            rows={4}
-            className="w-full border border-gray-300 rounded px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-slate-blue focus:ring-offset-1 resize-y"
-            aria-label="Section content"
-          />
+
+          {/* Reviews section body */}
+          {isReviewsSection(section) ? (
+            <div className="space-y-2">
+              {(section.reviews || []).map((review) => (
+                <div
+                  key={review.id}
+                  className="flex items-start gap-3 p-3 bg-white rounded-lg border border-gray-200"
+                >
+                  <div className="flex-1 min-w-0">
+                    <div className="flex items-center gap-2 mb-1">
+                      <StarRating rating={review.star_rating} size={13} />
+                      <span className="text-sm font-medium text-gray-900">{review.reviewer_name}</span>
+                      {review.platform && (
+                        <span className="text-xs text-gray-500 bg-gray-100 px-1.5 py-0.5 rounded whitespace-nowrap">
+                          {review.platform}
+                        </span>
+                      )}
+                    </div>
+                    <p className="text-sm text-gray-600 line-clamp-2">{review.review_content}</p>
+                  </div>
+                  <button
+                    type="button"
+                    onClick={() => removeReview(section.id, review.id)}
+                    className="p-1 text-gray-400 hover:text-red-500 transition-colors flex-shrink-0"
+                    aria-label={`Remove review from ${review.reviewer_name}`}
+                  >
+                    <Icon name="FaTimes" size={12} />
+                  </button>
+                </div>
+              ))}
+              <button
+                type="button"
+                onClick={() => setReviewPickerTarget(section.id)}
+                className="flex items-center gap-1.5 text-sm text-slate-blue hover:text-slate-blue/80 font-medium transition-colors mt-2"
+              >
+                <Icon name="FaPlus" size={12} />
+                Add reviews
+              </button>
+            </div>
+          ) : (
+            /* Text section body */
+            <>
+              <input
+                type="text"
+                value={section.subtitle || ''}
+                onChange={(e) => updateSection(section.id, 'subtitle', e.target.value)}
+                placeholder="Subtitle (optional)"
+                className="w-full border border-gray-300 rounded px-3 py-1.5 text-sm text-gray-600 focus:outline-none focus:ring-2 focus:ring-slate-blue focus:ring-offset-1 mb-2"
+                aria-label="Section subtitle"
+              />
+              <div className="flex justify-end mb-1">
+                <button
+                  type="button"
+                  onClick={() => setEnhanceTarget(section)}
+                  disabled={section.body.trim().length < 10}
+                  className="flex items-center gap-1.5 px-2.5 py-1 text-xs font-medium text-slate-blue hover:bg-slate-blue/10 rounded-md transition-colors disabled:opacity-30 disabled:cursor-not-allowed"
+                  aria-label="Enhance section with AI"
+                >
+                  <Icon name="prompty" size={16} className="text-slate-blue" />
+                  Enhance with AI
+                </button>
+              </div>
+              <textarea
+                value={section.body}
+                onChange={(e) => updateSection(section.id, 'body', e.target.value)}
+                placeholder="Section content..."
+                rows={4}
+                className="w-full border border-gray-300 rounded px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-slate-blue focus:ring-offset-1 resize-y"
+                aria-label="Section content"
+              />
+            </>
+          )}
         </div>
       ))}
 
@@ -153,6 +246,14 @@ export function ProposalCustomSectionsEditor({ sections, onChange }: ProposalCus
         >
           <Icon name="FaPlus" size={12} />
           Add section
+        </button>
+        <button
+          type="button"
+          onClick={addReviewsSection}
+          className="flex items-center gap-1.5 text-sm text-slate-blue hover:text-slate-blue/80 font-medium transition-colors"
+        >
+          <Icon name="FaStar" size={12} />
+          Add reviews
         </button>
         <button
           type="button"
@@ -186,6 +287,19 @@ export function ProposalCustomSectionsEditor({ sections, onChange }: ProposalCus
           sectionTitle={enhanceTarget.title}
           sectionBody={enhanceTarget.body}
           onAccept={(text) => updateSection(enhanceTarget.id, 'body', text)}
+        />
+      )}
+
+      {reviewPickerTarget && (
+        <ReviewPickerModal
+          isOpen={!!reviewPickerTarget}
+          onClose={() => setReviewPickerTarget(null)}
+          onAdd={(reviews) => handleAddReviews(reviewPickerTarget, reviews)}
+          alreadySelectedIds={
+            sections
+              .find((s) => s.id === reviewPickerTarget)
+              ?.reviews?.map((r) => r.id) || []
+          }
         />
       )}
     </div>
