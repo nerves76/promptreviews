@@ -2,13 +2,15 @@
 
 import Image from 'next/image';
 import { applyCardTransparency } from '@/utils/colorUtils';
-import { ProposalPreview } from '@/features/proposals/components/ProposalPreview';
-import { Proposal } from '@/features/proposals/types';
+import { Proposal, ProposalCustomSection, ProposalLineItem } from '@/features/proposals/types';
+import { formatSowNumber } from '@/features/proposals/sowHelpers';
 
 export interface StyleConfig {
   primaryFont: string;
   primaryColor: string;
   secondaryColor: string;
+  backgroundType: string;
+  backgroundColor: string;
   gradientStart: string;
   gradientMiddle: string;
   gradientEnd: string;
@@ -35,19 +37,26 @@ function getCardBorderStyle(config: StyleConfig) {
   return `${width}px solid rgba(${r}, ${g}, ${b}, ${config.cardBorderTransparency ?? 0.5})`;
 }
 
+function getBackground(config: StyleConfig): string {
+  if (config.backgroundType === 'solid') {
+    return config.backgroundColor;
+  }
+  return `linear-gradient(to bottom, ${config.gradientStart}, ${config.gradientMiddle}, ${config.gradientEnd})`;
+}
+
 interface BrandedProposalViewProps {
   proposal: Proposal;
   styleConfig: StyleConfig;
   sowPrefix?: string | null;
-  /** Content rendered inside the proposal content card, after ProposalPreview */
+  /** Content rendered after the last proposal card (e.g. signature section in its own card) */
   children?: React.ReactNode;
   /** If true, renders as a contained block (no min-h-screen). Used for dashboard embedding. */
   contained?: boolean;
 }
 
 /**
- * Branded proposal rendering with gradient background, logo circle,
- * business info card, and proposal content card.
+ * Branded proposal rendering with background, logo circle,
+ * business info card, and each proposal section in its own card.
  *
  * Used by both the public SOW page and the dashboard preview page.
  */
@@ -61,22 +70,41 @@ export function BrandedProposalView({
   const cardBg = applyCardTransparency(styleConfig.cardBg, styleConfig.cardTransparency);
   const cardBorder = getCardBorderStyle(styleConfig);
   const blurEnabled = styleConfig.cardTransparency < 1;
+  const color = styleConfig.cardText;
+  const mutedColor = `${color}B3`;
+
+  const cardClasses = `rounded-2xl p-6 sm:p-8 shadow-xl ${blurEnabled ? 'backdrop-blur-sm' : ''}`;
+  const cardStyle = {
+    backgroundColor: cardBg,
+    border: cardBorder,
+    backdropFilter: blurEnabled ? 'blur(8px)' : undefined,
+  };
+
+  const sections: ProposalCustomSection[] = Array.isArray(proposal.custom_sections)
+    ? [...proposal.custom_sections].sort((a, b) => a.position - b.position)
+    : [];
+
+  const lineItems: ProposalLineItem[] = Array.isArray(proposal.line_items)
+    ? proposal.line_items
+    : [];
+
+  const grandTotal = lineItems.reduce((sum, item) => sum + item.quantity * item.unit_price, 0);
 
   return (
     <div
       className={`${contained ? '' : 'min-h-screen'} px-4`}
       style={{
-        background: `linear-gradient(to bottom, ${styleConfig.gradientStart}, ${styleConfig.gradientMiddle}, ${styleConfig.gradientEnd})`,
+        background: getBackground(styleConfig),
         fontFamily: styleConfig.primaryFont,
       }}
     >
-      <div className="max-w-[900px] w-full mx-auto">
+      <div className="max-w-[900px] w-full mx-auto" id="proposal-preview-content">
         {/* Business info card */}
         <div
           className={`rounded-2xl shadow-lg px-6 pt-6 pb-8 flex flex-col items-center max-w-xl mx-auto relative mt-32 ${blurEnabled ? 'backdrop-blur-sm' : ''}`}
           style={{
             background: cardBg,
-            color: styleConfig.cardText,
+            color,
             border: cardBorder,
             backdropFilter: blurEnabled ? 'blur(8px)' : undefined,
           }}
@@ -128,40 +156,126 @@ export function BrandedProposalView({
               {styleConfig.businessName || 'Proposal'}
             </h1>
             {proposal.business_email && (
-              <p className="text-sm opacity-70" style={{ color: styleConfig.cardText }}>
+              <p className="text-sm opacity-70" style={{ color }}>
                 {proposal.business_email}
               </p>
             )}
             {proposal.business_phone && (
-              <p className="text-sm opacity-70" style={{ color: styleConfig.cardText }}>
+              <p className="text-sm opacity-70" style={{ color }}>
                 {proposal.business_phone}
               </p>
             )}
           </div>
         </div>
 
-        {/* Proposal content card */}
-        <div
-          className={`rounded-2xl p-6 sm:p-8 shadow-xl mt-6 mb-8 ${blurEnabled ? 'backdrop-blur-sm' : ''}`}
-          style={{
-            backgroundColor: cardBg,
-            border: cardBorder,
-            backdropFilter: blurEnabled ? 'blur(8px)' : undefined,
-          }}
-        >
-          <ProposalPreview
-            proposal={proposal}
-            id="proposal-preview-content"
-            textColor={styleConfig.cardText}
-            sowPrefix={sowPrefix}
-          />
+        {/* Title, dates, and client info card */}
+        <div className={`${cardClasses} mt-6`} style={cardStyle}>
+          <h2 className="text-2xl font-bold" style={{ color }}>{proposal.title}</h2>
+          <div className="flex flex-wrap gap-x-6 gap-y-1 mt-2 text-sm" style={{ color: mutedColor }}>
+            {proposal.show_sow_number && proposal.sow_number != null && sowPrefix && (
+              <span className="font-medium">SOW #{formatSowNumber(sowPrefix, proposal.sow_number)}</span>
+            )}
+            <span>Date: {new Date(proposal.proposal_date).toLocaleDateString('en-US', { year: 'numeric', month: 'long', day: 'numeric' })}</span>
+            {proposal.expiration_date && (
+              <span>Expires: {new Date(proposal.expiration_date).toLocaleDateString('en-US', { year: 'numeric', month: 'long', day: 'numeric' })}</span>
+            )}
+          </div>
 
-          {children}
+          {(proposal.client_first_name || proposal.client_last_name || proposal.client_email || proposal.client_company) && (
+            <div className="mt-4">
+              <h3 className="text-sm font-semibold uppercase tracking-wide mb-2" style={{ color: mutedColor }}>
+                Prepared for
+              </h3>
+              <div className="text-sm space-y-0.5" style={{ color }}>
+                {(proposal.client_first_name || proposal.client_last_name) && (
+                  <p className="font-medium">{[proposal.client_first_name, proposal.client_last_name].filter(Boolean).join(' ')}</p>
+                )}
+                {proposal.client_company && <p>{proposal.client_company}</p>}
+                {proposal.client_email && <p>{proposal.client_email}</p>}
+              </div>
+            </div>
+          )}
         </div>
 
+        {/* Each custom section in its own card */}
+        {sections.map((section) => (
+          <div key={section.id} className={`${cardClasses} mt-4`} style={cardStyle}>
+            {section.title && (
+              <h3 className="text-lg font-semibold" style={{ color }}>{section.title}</h3>
+            )}
+            {section.subtitle && (
+              <p className="text-sm mt-0.5 mb-2" style={{ color: mutedColor }}>{section.subtitle}</p>
+            )}
+            {!section.subtitle && section.title && <div className="mb-2" />}
+            {section.body && (
+              <div className="text-sm whitespace-pre-wrap leading-relaxed" style={{ color }}>
+                {section.body}
+              </div>
+            )}
+          </div>
+        ))}
+
+        {/* Pricing card */}
+        {proposal.show_pricing && lineItems.length > 0 && (
+          <div className={`${cardClasses} mt-4`} style={cardStyle}>
+            <h3 className="text-lg font-semibold mb-3" style={{ color }}>Pricing</h3>
+            <div className="overflow-x-auto">
+              <table className="min-w-full text-sm">
+                <thead>
+                  <tr style={{ borderBottom: `1px solid ${mutedColor}33` }}>
+                    <th className="text-left py-2 pr-4 font-medium" style={{ color: mutedColor }}>Description</th>
+                    <th className="text-right py-2 px-4 font-medium w-20" style={{ color: mutedColor }}>Qty</th>
+                    <th className="text-right py-2 px-4 font-medium w-28" style={{ color: mutedColor }}>Unit price</th>
+                    <th className="text-right py-2 pl-4 font-medium w-28" style={{ color: mutedColor }}>Total</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  {lineItems.map((item) => (
+                    <tr key={item.id} style={{ borderBottom: `1px solid ${mutedColor}1A` }}>
+                      <td className="py-2 pr-4" style={{ color }}>{item.description}</td>
+                      <td className="text-right py-2 px-4" style={{ color }}>{item.quantity}</td>
+                      <td className="text-right py-2 px-4" style={{ color }}>${item.unit_price.toFixed(2)}</td>
+                      <td className="text-right py-2 pl-4 font-medium" style={{ color }}>
+                        ${(item.quantity * item.unit_price).toFixed(2)}
+                      </td>
+                    </tr>
+                  ))}
+                </tbody>
+                <tfoot>
+                  <tr style={{ borderTop: `2px solid ${mutedColor}33` }}>
+                    <td colSpan={3} className="text-right py-3 pr-4 font-semibold" style={{ color }}>
+                      Grand total
+                    </td>
+                    <td className="text-right py-3 pl-4 font-bold text-lg" style={{ color }}>
+                      ${grandTotal.toFixed(2)}
+                    </td>
+                  </tr>
+                </tfoot>
+              </table>
+            </div>
+          </div>
+        )}
+
+        {/* Terms card */}
+        {proposal.show_terms && proposal.terms_content && (
+          <div className={`${cardClasses} mt-4`} style={cardStyle}>
+            <h3 className="text-lg font-semibold mb-2" style={{ color }}>Terms & conditions</h3>
+            <div className="text-sm whitespace-pre-wrap leading-relaxed" style={{ color: mutedColor }}>
+              {proposal.terms_content}
+            </div>
+          </div>
+        )}
+
+        {/* Children (signature section etc.) rendered as a separate card */}
+        {children && (
+          <div className={`${cardClasses} mt-4 mb-8`} style={cardStyle}>
+            {children}
+          </div>
+        )}
+
         {/* Footer */}
-        <div className="text-center pb-8">
-          <p className="text-sm opacity-50" style={{ color: styleConfig.cardText }}>
+        <div className={`text-center ${children ? '' : 'mt-4'} pb-8`}>
+          <p className="text-sm opacity-50" style={{ color }}>
             Powered by <a href="https://promptreviews.app" className="underline hover:opacity-80" target="_blank" rel="noopener noreferrer">Prompt Reviews</a>
           </p>
         </div>

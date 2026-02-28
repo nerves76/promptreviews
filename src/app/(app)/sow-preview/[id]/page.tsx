@@ -37,6 +37,8 @@ function buildStyleConfig(business: any): StyleConfig {
     primaryFont: business?.primary_font || GLASSY_DEFAULTS.primary_font,
     primaryColor: business?.primary_color || GLASSY_DEFAULTS.primary_color,
     secondaryColor: business?.secondary_color || GLASSY_DEFAULTS.secondary_color,
+    backgroundType: business?.background_type || GLASSY_DEFAULTS.background_type,
+    backgroundColor: business?.background_color || GLASSY_DEFAULTS.background_color,
     gradientStart: business?.gradient_start || GLASSY_DEFAULTS.gradient_start,
     gradientMiddle: business?.gradient_middle || GLASSY_DEFAULTS.gradient_middle,
     gradientEnd: business?.gradient_end || GLASSY_DEFAULTS.gradient_end,

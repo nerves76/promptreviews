@@ -43,7 +43,9 @@ export default function ProposalPageClient({ proposal, signature, styleConfig, t
       <div
         className="min-h-screen flex items-center justify-center px-4"
         style={{
-          background: `linear-gradient(to bottom, ${styleConfig.gradientStart}, ${styleConfig.gradientMiddle}, ${styleConfig.gradientEnd})`,
+          background: styleConfig.backgroundType === 'solid'
+            ? styleConfig.backgroundColor
+            : `linear-gradient(to bottom, ${styleConfig.gradientStart}, ${styleConfig.gradientMiddle}, ${styleConfig.gradientEnd})`,
           fontFamily: styleConfig.primaryFont,
         }}
       >

@@ -90,9 +90,18 @@ async function getProposalData(token: string) {
     // Fetch signature if exists
     const { data: signature } = await supabase
       .from('proposal_signatures')
-      .select('signer_name, signer_email, signed_at')
+      .select('signer_name, signer_email, signed_at, signature_image_url')
       .eq('proposal_id', proposal.id)
       .maybeSingle();
+
+    // Generate signed URL for signature image if it exists
+    let signatureImageUrl: string | null = null;
+    if (signature?.signature_image_url) {
+      const { data: signedUrlData } = await supabase.storage
+        .from('proposal-signatures')
+        .createSignedUrl(signature.signature_image_url, 3600);
+      signatureImageUrl = signedUrlData?.signedUrl || null;
+    }
 
     // Fetch business styling and SOW prefix
     let businessProfile = null;
@@ -114,7 +123,12 @@ async function getProposalData(token: string) {
       sowPrefix = account?.sow_prefix || null;
     }
 
-    return { proposal, signature, businessProfile, sowPrefix };
+    // Build signature data with image URL for client component
+    const signatureData = signature
+      ? { signer_name: signature.signer_name, signer_email: signature.signer_email, signed_at: signature.signed_at, signature_image_url: signatureImageUrl }
+      : null;
+
+    return { proposal, signature: signatureData, businessProfile, sowPrefix };
   } catch (error) {
     console.error('Error fetching proposal data:', error);
     return null;
@@ -136,6 +150,8 @@ export default async function ProposalPage({ params }: { params: Promise<{ token
     primaryFont: businessProfile?.primary_font || GLASSY_DEFAULTS.primary_font,
     primaryColor: businessProfile?.primary_color || GLASSY_DEFAULTS.primary_color,
     secondaryColor: businessProfile?.secondary_color || GLASSY_DEFAULTS.secondary_color,
+    backgroundType: businessProfile?.background_type || GLASSY_DEFAULTS.background_type,
+    backgroundColor: businessProfile?.background_color || GLASSY_DEFAULTS.background_color,
     gradientStart: businessProfile?.gradient_start || GLASSY_DEFAULTS.gradient_start,
     gradientMiddle: businessProfile?.gradient_middle || GLASSY_DEFAULTS.gradient_middle,
     gradientEnd: businessProfile?.gradient_end || GLASSY_DEFAULTS.gradient_end,
