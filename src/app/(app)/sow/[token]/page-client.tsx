@@ -6,6 +6,7 @@ import Icon from '@/components/Icon';
 import { BrandedProposalView, StyleConfig } from '@/features/proposals/components/BrandedProposalView';
 import { SignatureCanvas } from '@/features/proposals/components/SignatureCanvas';
 import { Proposal } from '@/features/proposals/types';
+import { exportProposalToPdf } from '@/features/proposals/utils/pdfExport';
 
 interface ProposalPageClientProps {
   proposal: Proposal;
@@ -111,12 +112,41 @@ export default function ProposalPageClient({ proposal, signature, styleConfig, t
     }
   };
 
+  const showSignButton = !signed && proposal.status !== 'expired' && proposal.status !== 'declined';
+
+  const btnClass = 'flex items-center gap-2 px-4 py-2 rounded-lg shadow-md hover:bg-gray-50 transition-colors w-full bg-white border border-gray-200 text-gray-700 whitespace-nowrap';
+
   return (
-    <BrandedProposalView
-      proposal={proposal}
-      styleConfig={styleConfig}
-      sowPrefix={sowPrefix}
-    >
+    <>
+      {/* Floating action bar */}
+      <div className="fixed right-4 top-4 z-[60] bg-black bg-opacity-20 backdrop-blur-sm rounded-xl p-3 space-y-2">
+        <button
+          type="button"
+          className={btnClass}
+          onClick={() => exportProposalToPdf('proposal-preview-content', proposal.title.replace(/\s+/g, '_'))}
+          aria-label="Download PDF"
+        >
+          <Icon name="FaFileAlt" size={14} />
+          <span className="text-sm font-medium">PDF</span>
+        </button>
+        {showSignButton && (
+          <button
+            type="button"
+            className={btnClass}
+            onClick={() => document.getElementById('proposal-signature')?.scrollIntoView({ behavior: 'smooth', block: 'start' })}
+            aria-label="Scroll to signature"
+          >
+            <Icon name="FaEdit" size={14} />
+            <span className="text-sm font-medium">Sign</span>
+          </button>
+        )}
+      </div>
+
+      <BrandedProposalView
+        proposal={proposal}
+        styleConfig={styleConfig}
+        sowPrefix={sowPrefix}
+      >
       {/* Signature section */}
       {signed ? (
         <div className="mt-8 pt-6 border-t" style={{ borderColor: `${styleConfig.cardText}22` }}>
@@ -236,5 +266,6 @@ export default function ProposalPageClient({ proposal, signature, styleConfig, t
         </div>
       )}
     </BrandedProposalView>
+    </>
   );
 }
