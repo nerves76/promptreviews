@@ -40,19 +40,37 @@ export function ProposalPreview({ proposal, id, textColor, sowPrefix }: Proposal
         </div>
       </div>
 
-      {/* Client info */}
-      {(proposal.client_first_name || proposal.client_last_name || proposal.client_email || proposal.client_company) && (
-        <div>
-          <h3 className="text-sm font-semibold uppercase tracking-wide mb-2" style={{ color: mutedColor }}>
-            Prepared for
-          </h3>
-          <div className="text-sm space-y-0.5" style={{ color }}>
-            {(proposal.client_first_name || proposal.client_last_name) && (
-              <p className="font-medium">{[proposal.client_first_name, proposal.client_last_name].filter(Boolean).join(' ')}</p>
-            )}
-            {proposal.client_company && <p>{proposal.client_company}</p>}
-            {proposal.client_email && <p>{proposal.client_email}</p>}
-          </div>
+      {/* From / Prepared for — two-column on desktop, stacked on mobile */}
+      {((proposal.business_name || proposal.business_email || proposal.business_phone || proposal.business_address) ||
+        (proposal.client_first_name || proposal.client_last_name || proposal.client_email || proposal.client_company)) && (
+        <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+          {(proposal.business_name || proposal.business_email || proposal.business_phone || proposal.business_address) && (
+            <div>
+              <h3 className="text-sm font-semibold uppercase tracking-wide mb-2" style={{ color: mutedColor }}>
+                From
+              </h3>
+              <div className="text-sm space-y-0.5" style={{ color }}>
+                {proposal.business_name && <p className="font-medium">{proposal.business_name}</p>}
+                {proposal.business_email && <p>{proposal.business_email}</p>}
+                {proposal.business_phone && <p>{proposal.business_phone}</p>}
+                {proposal.business_address && <p>{proposal.business_address}</p>}
+              </div>
+            </div>
+          )}
+          {(proposal.client_first_name || proposal.client_last_name || proposal.client_email || proposal.client_company) && (
+            <div>
+              <h3 className="text-sm font-semibold uppercase tracking-wide mb-2" style={{ color: mutedColor }}>
+                Prepared for
+              </h3>
+              <div className="text-sm space-y-0.5" style={{ color }}>
+                {(proposal.client_first_name || proposal.client_last_name) && (
+                  <p className="font-medium">{[proposal.client_first_name, proposal.client_last_name].filter(Boolean).join(' ')}</p>
+                )}
+                {proposal.client_company && <p>{proposal.client_company}</p>}
+                {proposal.client_email && <p>{proposal.client_email}</p>}
+              </div>
+            </div>
+          )}
         </div>
       )}
 
