@@ -357,7 +357,7 @@ export default function ContractsPage() {
                               Edit
                             </button>
                             <button
-                              onClick={() => router.push(`${basePath}/${proposal.id}/preview`)}
+                              onClick={() => router.push(`/sow-preview/${proposal.id}`)}
                               className="text-slate-blue hover:text-slate-blue/80 underline text-sm"
                             >
                               Preview
