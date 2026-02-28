@@ -354,67 +354,79 @@ export function ProposalEditor({ proposal, mode, basePath, defaultIsTemplate = f
       {/* SOW number — hidden for templates */}
       {!isTemplate && !sowPrefixLoading && (
         <div className="bg-gray-50 border border-gray-200 rounded-lg p-4">
-          <div className="flex items-center justify-between mb-1">
-            <h3 className="text-sm font-medium text-gray-700">SOW number</h3>
-            {mode === 'edit' && proposal?.sow_number != null && sowPrefix && (
-              <span className="text-lg font-semibold text-gray-900">
-                {formatSowNumber(sowPrefix, proposal.sow_number)}
-              </span>
-            )}
-          </div>
-          <p className="text-xs text-gray-500 mb-3">
-            This prefix appears on all your contracts (e.g. SOW #0311, #0312). Pick any number — once set, it can&apos;t be changed.
-          </p>
-
-          {/* Prefix input — editable only before first contract */}
-          <div className="flex items-start gap-3">
-            <div className="flex-1">
-              <label htmlFor="sow-prefix" className="block text-xs text-gray-500 mb-1">
-                Prefix {!sowPrefixLocked && <span className="text-red-500">*</span>}
-              </label>
-              <input
-                id="sow-prefix"
-                type="text"
-                inputMode="numeric"
-                pattern="[0-9]*"
-                value={sowPrefix}
-                onChange={(e) => {
-                  const val = e.target.value.replace(/\D/g, '').slice(0, 10);
-                  setSowPrefix(val);
-                }}
-                placeholder="e.g. 031"
-                disabled={sowPrefixLocked || !!isReadOnly}
-                className="w-32 border border-gray-300 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-inset focus:ring-slate-blue disabled:bg-gray-100"
-              />
-            </div>
-            {sowPrefixLocked && (
-              <div className="flex-1 text-xs text-gray-500 pt-5">
-                <span className="flex items-center gap-1">
-                  <Icon name="FaLock" size={10} />
-                  Prefix is locked
-                </span>
+          {sowPrefixLocked ? (
+            <>
+              {/* Locked: just show SOW number + toggle */}
+              <div className="flex items-center justify-between">
+                <h3 className="text-sm font-medium text-gray-700">SOW number</h3>
+                {mode === 'edit' && proposal?.sow_number != null && sowPrefix && (
+                  <span className="text-lg font-semibold text-gray-900">
+                    {formatSowNumber(sowPrefix, proposal.sow_number)}
+                  </span>
+                )}
               </div>
-            )}
-          </div>
+              {!isReadOnly && (
+                <label className="flex items-center gap-2 cursor-pointer mt-2">
+                  <input
+                    type="checkbox"
+                    checked={showSowNumber}
+                    onChange={(e) => setShowSowNumber(e.target.checked)}
+                    className="rounded border-gray-300 text-slate-blue focus:ring-slate-blue"
+                  />
+                  <span className="text-sm text-gray-700">Show SOW number on contract</span>
+                </label>
+              )}
+            </>
+          ) : (
+            <>
+              {/* Not locked: show prefix setup */}
+              <div className="flex items-center justify-between mb-1">
+                <h3 className="text-sm font-medium text-gray-700">SOW number</h3>
+              </div>
+              <p className="text-xs text-gray-500 mb-3">
+                This prefix appears on all your contracts (e.g. SOW #0311, #0312). Pick any number — once set, it can&apos;t be changed.
+              </p>
 
-          {/* Preview of what the SOW will look like */}
-          {sowPrefix && mode === 'create' && (
-            <p className="mt-2 text-xs text-gray-500">
-              Next contract will be SOW #{sowPrefix}...
-            </p>
-          )}
+              <div>
+                <label htmlFor="sow-prefix" className="block text-xs text-gray-500 mb-1">
+                  Prefix <span className="text-red-500">*</span>
+                </label>
+                <input
+                  id="sow-prefix"
+                  type="text"
+                  inputMode="numeric"
+                  pattern="[0-9]*"
+                  value={sowPrefix}
+                  onChange={(e) => {
+                    const val = e.target.value.replace(/\D/g, '').slice(0, 10);
+                    setSowPrefix(val);
+                  }}
+                  placeholder="e.g. 031"
+                  disabled={!!isReadOnly}
+                  className="w-32 border border-gray-300 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-inset focus:ring-slate-blue disabled:bg-gray-100"
+                />
+              </div>
 
-          {/* Show/hide toggle */}
-          {!isReadOnly && (
-            <label className="flex items-center gap-2 cursor-pointer mt-3">
-              <input
-                type="checkbox"
-                checked={showSowNumber}
-                onChange={(e) => setShowSowNumber(e.target.checked)}
-                className="rounded border-gray-300 text-slate-blue focus:ring-slate-blue"
-              />
-              <span className="text-sm text-gray-700">Show SOW number on contract</span>
-            </label>
+              {/* Preview of what the SOW will look like */}
+              {sowPrefix && mode === 'create' && (
+                <p className="mt-2 text-xs text-gray-500">
+                  Next contract will be SOW #{sowPrefix}...
+                </p>
+              )}
+
+              {/* Show/hide toggle */}
+              {!isReadOnly && (
+                <label className="flex items-center gap-2 cursor-pointer mt-3">
+                  <input
+                    type="checkbox"
+                    checked={showSowNumber}
+                    onChange={(e) => setShowSowNumber(e.target.checked)}
+                    className="rounded border-gray-300 text-slate-blue focus:ring-slate-blue"
+                  />
+                  <span className="text-sm text-gray-700">Show SOW number on contract</span>
+                </label>
+              )}
+            </>
           )}
         </div>
       )}
