@@ -7,6 +7,7 @@ import { Button } from '@/app/(app)/components/ui/button';
 import Icon from '@/components/Icon';
 import { Proposal, ProposalLineItem, ProposalCustomSection, ProposalStatus, USER_SETTABLE_STATUSES, PROPOSAL_STATUS_LABELS } from '../types';
 import { formatSowNumber } from '../sowHelpers';
+import { useBusinessData } from '@/auth/hooks/granularAuthHooks';
 import { ProposalLineItemsEditor } from './ProposalLineItemsEditor';
 import { ProposalCustomSectionsEditor } from './ProposalCustomSectionsEditor';
 
@@ -27,6 +28,8 @@ interface ProposalEditorProps {
 
 export function ProposalEditor({ proposal, mode, basePath, defaultIsTemplate = false }: ProposalEditorProps) {
   const router = useRouter();
+  const { business } = useBusinessData();
+  const isTemplate = defaultIsTemplate || (mode === 'edit' && !!proposal?.is_template);
   const [saving, setSaving] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
@@ -53,7 +56,7 @@ export function ProposalEditor({ proposal, mode, basePath, defaultIsTemplate = f
   const [clientEmail, setClientEmail] = useState(proposal?.client_email || '');
   const [clientCompany, setClientCompany] = useState(proposal?.client_company || '');
   const [contactId, setContactId] = useState<string | null>(proposal?.contact_id || null);
-  const [businessAddress, setBusinessAddress] = useState(proposal?.business_address || '');
+  const [businessAddress, setBusinessAddress] = useState(proposal?.business_address || business?.address || '');
   const [showPricing, setShowPricing] = useState(proposal?.show_pricing ?? true);
   const [showTerms, setShowTerms] = useState(proposal?.show_terms ?? false);
   const [termsContent, setTermsContent] = useState(proposal?.terms_content || '');
@@ -180,8 +183,8 @@ export function ProposalEditor({ proposal, mode, basePath, defaultIsTemplate = f
       return;
     }
 
-    // If no prefix set yet, require it before creating a contract
-    if (mode === 'create' && !sowPrefixLocked && !sowPrefix.trim()) {
+    // If no prefix set yet, require it before creating a contract (not for templates)
+    if (mode === 'create' && !isTemplate && !sowPrefixLocked && !sowPrefix.trim()) {
       setError('Please set a SOW prefix before creating a contract');
       return;
     }
@@ -190,8 +193,8 @@ export function ProposalEditor({ proposal, mode, basePath, defaultIsTemplate = f
     setError(null);
 
     try {
-      // Save prefix first if it hasn't been saved yet
-      if (sowPrefix.trim() && !sowPrefixLocked) {
+      // Save prefix first if it hasn't been saved yet (skip for templates)
+      if (!isTemplate && sowPrefix.trim() && !sowPrefixLocked) {
         const prefixSaved = await handleSaveSowPrefix();
         if (!prefixSaved) {
           setSaving(false);
@@ -218,7 +221,7 @@ export function ProposalEditor({ proposal, mode, basePath, defaultIsTemplate = f
       };
 
       if (mode === 'create') {
-        const createPayload = defaultIsTemplate
+        const createPayload = isTemplate
           ? { ...payload, is_template: true, template_name: title.trim() || null }
           : payload;
         const data = await apiClient.post<Proposal>('/proposals', createPayload);
@@ -272,7 +275,7 @@ export function ProposalEditor({ proposal, mode, basePath, defaultIsTemplate = f
       <Button variant="secondary" onClick={() => router.push(basePath)} className="whitespace-nowrap">
         Cancel
       </Button>
-      {mode === 'edit' && proposal && (
+      {mode === 'edit' && proposal && !isTemplate && (
         <Button variant="secondary" onClick={handleSaveAsTemplate} className="whitespace-nowrap">
           Save as template
         </Button>
@@ -283,6 +286,8 @@ export function ProposalEditor({ proposal, mode, basePath, defaultIsTemplate = f
             <Icon name="FaSpinner" size={14} className="animate-spin mr-2" />
             Saving...
           </>
+        ) : mode === 'create' && isTemplate ? (
+          'Create template'
         ) : (
           'Save'
         )}
@@ -307,8 +312,8 @@ export function ProposalEditor({ proposal, mode, basePath, defaultIsTemplate = f
       {/* Top actions */}
       {actionButtons}
 
-      {/* Status selector (edit mode only) */}
-      {mode === 'edit' && proposal && (
+      {/* Status selector (edit mode only, not for templates) */}
+      {mode === 'edit' && proposal && !isTemplate && (
         <div>
           <label htmlFor="proposal-status" className="block text-sm font-medium text-gray-700 mb-1">
             Status
@@ -346,8 +351,8 @@ export function ProposalEditor({ proposal, mode, basePath, defaultIsTemplate = f
         />
       </div>
 
-      {/* SOW number */}
-      {!sowPrefixLoading && (
+      {/* SOW number — hidden for templates */}
+      {!isTemplate && !sowPrefixLoading && (
         <div className="bg-gray-50 border border-gray-200 rounded-lg p-4">
           <div className="flex items-center justify-between mb-1">
             <h3 className="text-sm font-medium text-gray-700">SOW number</h3>
@@ -415,7 +420,7 @@ export function ProposalEditor({ proposal, mode, basePath, defaultIsTemplate = f
       )}
 
       {/* Dates — hidden for templates */}
-      {!defaultIsTemplate && <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+      {!isTemplate && <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
         <div>
           <label htmlFor="proposal-date" className="block text-sm font-medium text-gray-700 mb-1">
             Proposal date
@@ -445,7 +450,7 @@ export function ProposalEditor({ proposal, mode, basePath, defaultIsTemplate = f
       </div>}
 
       {/* Client info — hidden for templates */}
-      {!defaultIsTemplate && <div className="relative" ref={suggestionsRef}>
+      {!isTemplate && <div className="relative" ref={suggestionsRef}>
         <div className="flex items-center justify-between mb-2">
           <h3 className="text-sm font-medium text-gray-700">Client information</h3>
           {contactId && (
@@ -543,21 +548,23 @@ export function ProposalEditor({ proposal, mode, basePath, defaultIsTemplate = f
         )}
       </div>}
 
-      {/* Business address (optional) */}
-      <div>
-        <label htmlFor="business-address" className="block text-sm font-medium text-gray-700 mb-1">
-          Business address <span className="text-xs font-normal text-gray-500">(optional)</span>
-        </label>
-        <input
-          id="business-address"
-          type="text"
-          value={businessAddress}
-          onChange={(e) => setBusinessAddress(e.target.value)}
-          placeholder="e.g. 123 Main St, Suite 100, City, ST 12345"
-          disabled={!!isReadOnly}
-          className="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-inset focus:ring-slate-blue disabled:bg-gray-100"
-        />
-      </div>
+      {/* Business address (optional) — hidden for templates */}
+      {!isTemplate && (
+        <div>
+          <label htmlFor="business-address" className="block text-sm font-medium text-gray-700 mb-1">
+            Business address <span className="text-xs font-normal text-gray-500">(optional)</span>
+          </label>
+          <input
+            id="business-address"
+            type="text"
+            value={businessAddress}
+            onChange={(e) => setBusinessAddress(e.target.value)}
+            placeholder="e.g. 123 Main St, Suite 100, City, ST 12345"
+            disabled={!!isReadOnly}
+            className="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-inset focus:ring-slate-blue disabled:bg-gray-100"
+          />
+        </div>
+      )}
 
       {/* Custom sections */}
       <div>

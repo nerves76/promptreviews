@@ -34,8 +34,8 @@ export default function EditContractPage({ params }: { params: Promise<{ id: str
   return (
     <PageCard icon={<Icon name="FaBriefcase" size={24} className="text-slate-blue" />}>
       <PageCardHeader
-        title={`Edit: ${proposal.title}`}
-        description="Update your contract details"
+        title={proposal.is_template ? `Edit template: ${proposal.title}` : `Edit: ${proposal.title}`}
+        description={proposal.is_template ? 'Update your template details' : 'Update your contract details'}
       />
       <ProposalEditor proposal={proposal} mode="edit" basePath="/agency/contracts" />
     </PageCard>
