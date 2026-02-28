@@ -2,7 +2,7 @@
 
 import Image from 'next/image';
 import { applyCardTransparency } from '@/utils/colorUtils';
-import { Proposal, ProposalCustomSection, ProposalLineItem } from '@/features/proposals/types';
+import { Proposal, ProposalCustomSection, ProposalLineItem, PricingType } from '@/features/proposals/types';
 import StarRating from '@/app/(app)/dashboard/widget/components/shared/StarRating';
 import { formatSowNumber } from '@/features/proposals/sowHelpers';
 
@@ -99,6 +99,9 @@ export function BrandedProposalView({
     : [];
 
   const grandTotal = lineItems.reduce((sum, item) => sum + item.quantity * item.unit_price, 0);
+  const pt: PricingType = proposal.pricing_type || 'fixed';
+  const qtyHeader = pt === 'hourly' ? 'Hours' : 'Qty';
+  const rateHeader = pt === 'hourly' ? 'Rate' : pt === 'monthly' ? 'Monthly rate' : 'Unit price';
 
   const addressDisplay = [styleConfig.addressCity, styleConfig.addressState]
     .filter(Boolean)
@@ -296,8 +299,8 @@ export function BrandedProposalView({
                 <thead>
                   <tr style={{ borderBottom: `1px solid ${mutedColor}33` }}>
                     <th className="text-left py-2 pr-4 font-medium" style={{ color: mutedColor }}>Description</th>
-                    <th className="text-right py-2 px-4 font-medium w-20" style={{ color: mutedColor }}>Qty</th>
-                    <th className="text-right py-2 px-4 font-medium w-28" style={{ color: mutedColor }}>Unit price</th>
+                    <th className="text-right py-2 px-4 font-medium w-20" style={{ color: mutedColor }}>{qtyHeader}</th>
+                    <th className="text-right py-2 px-4 font-medium w-28" style={{ color: mutedColor }}>{rateHeader}</th>
                     <th className="text-right py-2 pl-4 font-medium w-28" style={{ color: mutedColor }}>Total</th>
                   </tr>
                 </thead>
@@ -316,10 +319,10 @@ export function BrandedProposalView({
                 <tfoot>
                   <tr style={{ borderTop: `2px solid ${mutedColor}33` }}>
                     <td colSpan={3} className="text-right py-3 pr-4 font-semibold" style={{ color }}>
-                      Grand total
+                      Grand total{pt === 'monthly' ? ' per month' : ''}
                     </td>
                     <td className="text-right py-3 pl-4 font-bold text-lg" style={{ color }}>
-                      ${grandTotal.toFixed(2)}
+                      ${grandTotal.toFixed(2)}{pt === 'monthly' ? '/mo' : ''}
                     </td>
                   </tr>
                 </tfoot>

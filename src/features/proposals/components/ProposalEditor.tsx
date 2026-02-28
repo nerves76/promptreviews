@@ -5,7 +5,7 @@ import { useRouter } from 'next/navigation';
 import { apiClient } from '@/utils/apiClient';
 import { Button } from '@/app/(app)/components/ui/button';
 import Icon from '@/components/Icon';
-import { Proposal, ProposalLineItem, ProposalCustomSection, ProposalStatus, USER_SETTABLE_STATUSES, PROPOSAL_STATUS_LABELS } from '../types';
+import { Proposal, ProposalLineItem, ProposalCustomSection, ProposalStatus, PricingType, USER_SETTABLE_STATUSES, PROPOSAL_STATUS_LABELS, PRICING_TYPE_LABELS } from '../types';
 import { formatSowNumber } from '../sowHelpers';
 import { useBusinessData } from '@/auth/hooks/granularAuthHooks';
 import { ProposalLineItemsEditor } from './ProposalLineItemsEditor';
@@ -58,6 +58,7 @@ export function ProposalEditor({ proposal, mode, basePath, defaultIsTemplate = f
   const [contactId, setContactId] = useState<string | null>(proposal?.contact_id || null);
   const businessAddress = business?.address || '';
   const [showPricing, setShowPricing] = useState(proposal?.show_pricing ?? true);
+  const [pricingType, setPricingType] = useState<PricingType>(proposal?.pricing_type || 'fixed');
   const [showTerms, setShowTerms] = useState(proposal?.show_terms ?? false);
   const [termsContent, setTermsContent] = useState(proposal?.terms_content || '');
   const [customSections, setCustomSections] = useState<ProposalCustomSection[]>(
@@ -96,6 +97,7 @@ export function ProposalEditor({ proposal, mode, basePath, defaultIsTemplate = f
       setClientCompany(proposal.client_company || '');
       setContactId(proposal.contact_id || null);
       setShowPricing(proposal.show_pricing ?? true);
+      setPricingType(proposal.pricing_type || 'fixed');
       setShowTerms(proposal.show_terms ?? false);
       setShowSowNumber(proposal.show_sow_number ?? true);
       setTermsContent(proposal.terms_content || '');
@@ -211,6 +213,7 @@ export function ProposalEditor({ proposal, mode, basePath, defaultIsTemplate = f
         contact_id: contactId,
         business_address: businessAddress.trim() || null,
         show_pricing: showPricing,
+        pricing_type: pricingType,
         show_terms: showTerms,
         show_sow_number: showSowNumber,
         terms_content: termsContent || null,
@@ -607,7 +610,22 @@ export function ProposalEditor({ proposal, mode, basePath, defaultIsTemplate = f
           </label>
         </div>
         {showPricing && !isReadOnly && (
-          <ProposalLineItemsEditor lineItems={lineItems} onChange={setLineItems} />
+          <div className="mb-3">
+            <label htmlFor="pricing-type" className="block text-xs text-gray-500 mb-1">Pricing type</label>
+            <select
+              id="pricing-type"
+              value={pricingType}
+              onChange={(e) => setPricingType(e.target.value as PricingType)}
+              className="border border-gray-300 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-slate-blue focus:ring-offset-1 w-40"
+            >
+              {(Object.keys(PRICING_TYPE_LABELS) as PricingType[]).map((key) => (
+                <option key={key} value={key}>{PRICING_TYPE_LABELS[key]}</option>
+              ))}
+            </select>
+          </div>
+        )}
+        {showPricing && !isReadOnly && (
+          <ProposalLineItemsEditor lineItems={lineItems} onChange={setLineItems} pricingType={pricingType} />
         )}
         {showPricing && isReadOnly && lineItems.length > 0 && (
           <div className="text-sm text-gray-600">

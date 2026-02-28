@@ -130,6 +130,7 @@ export async function POST(request: NextRequest) {
         business_logo_url: business?.logo_url || null,
         business_website: business?.website || null,
         show_pricing: body.show_pricing ?? true,
+        pricing_type: body.pricing_type || 'fixed',
         show_terms: body.show_terms ?? false,
         show_sow_number: body.show_sow_number ?? true,
         terms_content: body.terms_content || null,

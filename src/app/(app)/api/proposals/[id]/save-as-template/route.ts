@@ -65,6 +65,7 @@ export async function POST(request: NextRequest, context: RouteContext) {
         business_logo_url: original.business_logo_url,
         business_website: original.business_website,
         show_pricing: original.show_pricing,
+        pricing_type: original.pricing_type || 'fixed',
         show_terms: original.show_terms,
         terms_content: original.terms_content,
         custom_sections: original.custom_sections,

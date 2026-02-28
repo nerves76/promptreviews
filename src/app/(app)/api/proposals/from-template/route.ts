@@ -83,6 +83,7 @@ export async function POST(request: NextRequest) {
         business_logo_url: business?.logo_url || template.business_logo_url,
         business_website: business?.website || template.business_website,
         show_pricing: template.show_pricing,
+        pricing_type: template.pricing_type || 'fixed',
         show_terms: template.show_terms,
         terms_content: template.terms_content,
         custom_sections: template.custom_sections,

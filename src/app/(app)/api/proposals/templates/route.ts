@@ -21,7 +21,7 @@ export async function GET(request: NextRequest) {
 
     const { data: templates, error } = await supabase
       .from('proposals')
-      .select('id, title, template_name, custom_sections, line_items, show_pricing, show_terms, terms_content, created_at')
+      .select('id, title, template_name, custom_sections, line_items, show_pricing, pricing_type, show_terms, terms_content, created_at')
       .eq('account_id', accountId)
       .eq('is_template', true)
       .order('created_at', { ascending: false })

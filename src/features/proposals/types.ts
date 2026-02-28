@@ -35,6 +35,16 @@ export const USER_SETTABLE_STATUSES: { value: ProposalStatus; label: string }[] 
   { value: 'declined', label: 'Lost' },
 ];
 
+// --- Pricing Type ---
+
+export type PricingType = 'fixed' | 'monthly' | 'hourly';
+
+export const PRICING_TYPE_LABELS: Record<PricingType, string> = {
+  fixed: 'Fixed price',
+  monthly: 'Monthly',
+  hourly: 'Hourly',
+};
+
 // --- Line Items ---
 
 export interface ProposalLineItem {
@@ -102,6 +112,7 @@ export interface Proposal {
   business_logo_url?: string | null;
   business_website?: string | null;
   show_pricing: boolean;
+  pricing_type?: PricingType;
   show_terms: boolean;
   terms_content?: string | null;
   custom_sections: ProposalCustomSection[];
@@ -146,6 +157,7 @@ export interface CreateProposalRequest {
   client_company?: string;
   contact_id?: string | null;
   show_pricing?: boolean;
+  pricing_type?: PricingType;
   show_terms?: boolean;
   terms_content?: string;
   custom_sections?: ProposalCustomSection[];

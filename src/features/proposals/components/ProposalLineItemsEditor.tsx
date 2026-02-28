@@ -1,18 +1,19 @@
 'use client';
 
-import { ProposalLineItem } from '../types';
+import { ProposalLineItem, PricingType } from '../types';
 import Icon from '@/components/Icon';
 
 interface ProposalLineItemsEditorProps {
   lineItems: ProposalLineItem[];
   onChange: (items: ProposalLineItem[]) => void;
+  pricingType?: PricingType;
 }
 
 function generateId() {
   return Math.random().toString(36).substring(2, 10);
 }
 
-export function ProposalLineItemsEditor({ lineItems, onChange }: ProposalLineItemsEditorProps) {
+export function ProposalLineItemsEditor({ lineItems, onChange, pricingType = 'fixed' }: ProposalLineItemsEditorProps) {
   const addItem = () => {
     onChange([...lineItems, { id: generateId(), description: '', quantity: 1, unit_price: 0 }]);
   };
@@ -31,6 +32,9 @@ export function ProposalLineItemsEditor({ lineItems, onChange }: ProposalLineIte
 
   const grandTotal = lineItems.reduce((sum, item) => sum + item.quantity * item.unit_price, 0);
 
+  const qtyLabel = pricingType === 'hourly' ? 'Hours' : 'Qty';
+  const rateLabel = pricingType === 'hourly' ? 'Rate' : pricingType === 'monthly' ? 'Monthly rate' : 'Unit price';
+
   return (
     <div>
       <div className="overflow-x-auto">
@@ -38,8 +42,8 @@ export function ProposalLineItemsEditor({ lineItems, onChange }: ProposalLineIte
           <thead>
             <tr>
               <th className="px-3 py-2 text-left text-xs font-medium text-gray-500 uppercase">Description</th>
-              <th className="px-3 py-2 text-left text-xs font-medium text-gray-500 uppercase w-24">Qty</th>
-              <th className="px-3 py-2 text-left text-xs font-medium text-gray-500 uppercase w-32">Unit price</th>
+              <th className="px-3 py-2 text-left text-xs font-medium text-gray-500 uppercase w-24">{qtyLabel}</th>
+              <th className="px-3 py-2 text-left text-xs font-medium text-gray-500 uppercase w-32">{rateLabel}</th>
               <th className="px-3 py-2 text-right text-xs font-medium text-gray-500 uppercase w-28">Total</th>
               <th className="w-10"></th>
             </tr>
@@ -61,11 +65,11 @@ export function ProposalLineItemsEditor({ lineItems, onChange }: ProposalLineIte
                   <input
                     type="number"
                     min="0"
-                    step="1"
+                    step={pricingType === 'hourly' ? '0.5' : '1'}
                     value={item.quantity || ''}
                     onChange={(e) => updateItem(item.id, 'quantity', parseFloat(e.target.value) || 0)}
                     className="w-full border border-gray-300 rounded px-2 py-1.5 text-sm focus:outline-none focus:ring-2 focus:ring-slate-blue focus:ring-offset-1"
-                    aria-label="Quantity"
+                    aria-label={qtyLabel}
                   />
                 </td>
                 <td className="px-3 py-2">
@@ -78,7 +82,7 @@ export function ProposalLineItemsEditor({ lineItems, onChange }: ProposalLineIte
                       value={item.unit_price || ''}
                       onChange={(e) => updateItem(item.id, 'unit_price', parseFloat(e.target.value) || 0)}
                       className="w-full border border-gray-300 rounded pl-6 pr-2 py-1.5 text-sm focus:outline-none focus:ring-2 focus:ring-slate-blue focus:ring-offset-1"
-                      aria-label="Unit price"
+                      aria-label={rateLabel}
                     />
                   </div>
                 </td>
@@ -104,7 +108,9 @@ export function ProposalLineItemsEditor({ lineItems, onChange }: ProposalLineIte
       {lineItems.length > 0 && (
         <div className="flex justify-end mt-2 pr-12">
           <div className="text-right">
-            <span className="text-sm font-medium text-gray-500 mr-4">Grand total:</span>
+            <span className="text-sm font-medium text-gray-500 mr-4">
+              Grand total{pricingType === 'monthly' ? '/mo' : ''}:
+            </span>
             <span className="text-lg font-bold text-gray-900">${grandTotal.toFixed(2)}</span>
           </div>
         </div>
