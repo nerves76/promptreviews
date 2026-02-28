@@ -4,6 +4,7 @@ import { useState, useEffect, useCallback } from 'react';
 import { useRouter } from 'next/navigation';
 import PageCard, { PageCardHeader } from '@/app/(app)/components/PageCard';
 import { Button } from '@/app/(app)/components/ui/button';
+import { Modal } from '@/app/(app)/components/ui/modal';
 import { ConfirmDialog } from '@/app/(app)/components/ui/confirm-dialog';
 import Icon from '@/components/Icon';
 import { useProposals } from '@/features/proposals/hooks/useProposals';
@@ -53,6 +54,9 @@ export default function ContractsPage() {
   const [sectionsLoading, setSectionsLoading] = useState(false);
   const [deletingSection, setDeletingSection] = useState<ProposalSectionTemplate | null>(null);
   const [sectionDeleting, setSectionDeleting] = useState(false);
+  const [showNewSection, setShowNewSection] = useState(false);
+  const [newSection, setNewSection] = useState({ name: '', title: '', body: '' });
+  const [newSectionSaving, setNewSectionSaving] = useState(false);
 
   useEffect(() => {
     async function fetchPrefix() {
@@ -180,6 +184,26 @@ export default function ContractsPage() {
     } finally {
       setSectionDeleting(false);
       setDeletingSection(null);
+    }
+  };
+
+  const handleCreateSection = async () => {
+    if (!newSection.name.trim() || !newSection.title.trim()) return;
+    setNewSectionSaving(true);
+    try {
+      const data = await apiClient.post<ProposalSectionTemplate>('/proposals/section-templates', {
+        name: newSection.name.trim(),
+        title: newSection.title.trim(),
+        body: newSection.body.trim(),
+      });
+      setSections((prev) => [data, ...prev]);
+      setNewSection({ name: '', title: '', body: '' });
+      setShowNewSection(false);
+      success('Section created');
+    } catch {
+      showError('Failed to create section');
+    } finally {
+      setNewSectionSaving(false);
     }
   };
 
@@ -352,6 +376,16 @@ export default function ContractsPage() {
       {/* ===== TEMPLATES TAB ===== */}
       {activeTab === 'templates' && (
         <>
+          <div className="flex justify-end mb-4">
+            <Button
+              size="sm"
+              onClick={() => router.push(`${basePath}/create?template=true`)}
+              className="whitespace-nowrap"
+            >
+              <Icon name="FaPlus" size={12} className="mr-1.5" />
+              New template
+            </Button>
+          </div>
           {templatesLoading ? (
             <div className="text-center py-12 text-gray-500">
               <Icon name="FaSpinner" size={20} className="animate-spin mx-auto mb-2" />
@@ -427,6 +461,19 @@ export default function ContractsPage() {
       {/* ===== SECTIONS TAB ===== */}
       {activeTab === 'sections' && (
         <>
+          <div className="flex justify-end mb-4">
+            <Button
+              size="sm"
+              onClick={() => {
+                setNewSection({ name: '', title: '', body: '' });
+                setShowNewSection(true);
+              }}
+              className="whitespace-nowrap"
+            >
+              <Icon name="FaPlus" size={12} className="mr-1.5" />
+              New section
+            </Button>
+          </div>
           {sectionsLoading ? (
             <div className="text-center py-12 text-gray-500">
               <Icon name="FaSpinner" size={20} className="animate-spin mx-auto mb-2" />
@@ -496,6 +543,76 @@ export default function ContractsPage() {
         confirmVariant="danger"
         isLoading={sectionDeleting}
       />
+
+      {/* New section modal */}
+      <Modal
+        isOpen={showNewSection}
+        onClose={() => setShowNewSection(false)}
+        title="New section"
+        size="md"
+      >
+        <Modal.Body>
+          <div>
+            <label htmlFor="new-section-name" className="block text-sm font-medium text-gray-700 mb-1">
+              Name
+            </label>
+            <input
+              id="new-section-name"
+              type="text"
+              value={newSection.name}
+              onChange={(e) => setNewSection((s) => ({ ...s, name: e.target.value }))}
+              placeholder="e.g. Standard payment terms"
+              className="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-slate-blue focus:ring-offset-1"
+              autoFocus
+            />
+            <p className="mt-1 text-xs text-gray-500">Identifies this section in your library.</p>
+          </div>
+          <div>
+            <label htmlFor="new-section-title" className="block text-sm font-medium text-gray-700 mb-1">
+              Section title
+            </label>
+            <input
+              id="new-section-title"
+              type="text"
+              value={newSection.title}
+              onChange={(e) => setNewSection((s) => ({ ...s, title: e.target.value }))}
+              placeholder="e.g. Payment terms"
+              className="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-slate-blue focus:ring-offset-1"
+            />
+          </div>
+          <div>
+            <label htmlFor="new-section-body" className="block text-sm font-medium text-gray-700 mb-1">
+              Content
+            </label>
+            <textarea
+              id="new-section-body"
+              value={newSection.body}
+              onChange={(e) => setNewSection((s) => ({ ...s, body: e.target.value }))}
+              placeholder="Section content..."
+              rows={5}
+              className="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-slate-blue focus:ring-offset-1 resize-y"
+            />
+          </div>
+        </Modal.Body>
+        <Modal.Footer>
+          <Button variant="secondary" onClick={() => setShowNewSection(false)}>
+            Cancel
+          </Button>
+          <Button
+            onClick={handleCreateSection}
+            disabled={newSectionSaving || !newSection.name.trim() || !newSection.title.trim()}
+          >
+            {newSectionSaving ? (
+              <>
+                <Icon name="FaSpinner" size={14} className="animate-spin mr-2" />
+                Saving...
+              </>
+            ) : (
+              'Create section'
+            )}
+          </Button>
+        </Modal.Footer>
+      </Modal>
 
       <ToastContainer toasts={toasts} onClose={closeToast} />
     </PageCard>

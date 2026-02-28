@@ -22,9 +22,10 @@ interface ProposalEditorProps {
   proposal?: Proposal | null;
   mode: 'create' | 'edit';
   basePath: string;
+  defaultIsTemplate?: boolean;
 }
 
-export function ProposalEditor({ proposal, mode, basePath }: ProposalEditorProps) {
+export function ProposalEditor({ proposal, mode, basePath, defaultIsTemplate = false }: ProposalEditorProps) {
   const router = useRouter();
   const [saving, setSaving] = useState(false);
   const [error, setError] = useState<string | null>(null);
@@ -217,7 +218,10 @@ export function ProposalEditor({ proposal, mode, basePath }: ProposalEditorProps
       };
 
       if (mode === 'create') {
-        const data = await apiClient.post<Proposal>('/proposals', payload);
+        const createPayload = defaultIsTemplate
+          ? { ...payload, is_template: true, template_name: title.trim() || null }
+          : payload;
+        const data = await apiClient.post<Proposal>('/proposals', createPayload);
         router.push(`${basePath}/${data.id}`);
       } else if (proposal) {
         await apiClient.put<Proposal>(`/proposals/${proposal.id}`, payload);
