@@ -329,14 +329,14 @@ export function ProposalEditor({ proposal, mode, basePath }: ProposalEditorProps
           onChange={(e) => setTitle(e.target.value)}
           placeholder="e.g. Website redesign proposal"
           disabled={!!isReadOnly}
-          className="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-slate-blue focus:ring-offset-1 disabled:bg-gray-100"
+          className="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-inset focus:ring-slate-blue disabled:bg-gray-100"
         />
       </div>
 
       {/* SOW number */}
       {!sowPrefixLoading && (
         <div className="bg-gray-50 border border-gray-200 rounded-lg p-4">
-          <div className="flex items-center justify-between mb-2">
+          <div className="flex items-center justify-between mb-1">
             <h3 className="text-sm font-medium text-gray-700">SOW number</h3>
             {mode === 'edit' && proposal?.sow_number != null && sowPrefix && (
               <span className="text-lg font-semibold text-gray-900">
@@ -344,6 +344,9 @@ export function ProposalEditor({ proposal, mode, basePath }: ProposalEditorProps
               </span>
             )}
           </div>
+          <p className="text-xs text-gray-500 mb-3">
+            This prefix appears on all your contracts (e.g. SOW #0311, #0312). Pick any number — once set, it can&apos;t be changed.
+          </p>
 
           {/* Prefix input — editable only before first contract */}
           <div className="flex items-start gap-3">
@@ -363,22 +366,17 @@ export function ProposalEditor({ proposal, mode, basePath }: ProposalEditorProps
                 }}
                 placeholder="e.g. 031"
                 disabled={sowPrefixLocked || !!isReadOnly}
-                className="w-32 border border-gray-300 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-slate-blue focus:ring-offset-1 disabled:bg-gray-100"
+                className="w-32 border border-gray-300 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-inset focus:ring-slate-blue disabled:bg-gray-100"
               />
             </div>
-            <div className="flex-1 text-xs text-gray-500 pt-5">
-              {sowPrefixLocked ? (
+            {sowPrefixLocked && (
+              <div className="flex-1 text-xs text-gray-500 pt-5">
                 <span className="flex items-center gap-1">
                   <Icon name="FaLock" size={10} />
-                  Prefix is locked after the first contract
+                  Prefix is locked
                 </span>
-              ) : (
-                <span className="flex items-center gap-1">
-                  <Icon name="FaExclamationTriangle" size={10} className="text-amber-500" />
-                  Choose carefully — this cannot be changed later
-                </span>
-              )}
-            </div>
+              </div>
+            )}
           </div>
 
           {/* Preview of what the SOW will look like */}
@@ -415,7 +413,7 @@ export function ProposalEditor({ proposal, mode, basePath }: ProposalEditorProps
             value={proposalDate}
             onChange={(e) => setProposalDate(e.target.value)}
             disabled={!!isReadOnly}
-            className="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-slate-blue focus:ring-offset-1 disabled:bg-gray-100"
+            className="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-inset focus:ring-slate-blue disabled:bg-gray-100"
           />
         </div>
         <div>
@@ -428,7 +426,7 @@ export function ProposalEditor({ proposal, mode, basePath }: ProposalEditorProps
             value={expirationDate}
             onChange={(e) => setExpirationDate(e.target.value)}
             disabled={!!isReadOnly}
-            className="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-slate-blue focus:ring-offset-1 disabled:bg-gray-100"
+            className="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-inset focus:ring-slate-blue disabled:bg-gray-100"
           />
         </div>
       </div>
@@ -465,7 +463,7 @@ export function ProposalEditor({ proposal, mode, basePath }: ProposalEditorProps
               placeholder="First"
               disabled={!!isReadOnly}
               autoComplete="off"
-              className="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-slate-blue focus:ring-offset-1 disabled:bg-gray-100"
+              className="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-inset focus:ring-slate-blue disabled:bg-gray-100"
             />
           </div>
           <div>
@@ -479,7 +477,7 @@ export function ProposalEditor({ proposal, mode, basePath }: ProposalEditorProps
               placeholder="Last"
               disabled={!!isReadOnly}
               autoComplete="off"
-              className="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-slate-blue focus:ring-offset-1 disabled:bg-gray-100"
+              className="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-inset focus:ring-slate-blue disabled:bg-gray-100"
             />
           </div>
           <div>
@@ -491,7 +489,7 @@ export function ProposalEditor({ proposal, mode, basePath }: ProposalEditorProps
               onChange={(e) => setClientEmail(e.target.value)}
               placeholder="client@example.com"
               disabled={!!isReadOnly}
-              className="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-slate-blue focus:ring-offset-1 disabled:bg-gray-100"
+              className="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-inset focus:ring-slate-blue disabled:bg-gray-100"
             />
           </div>
           <div>
@@ -503,7 +501,7 @@ export function ProposalEditor({ proposal, mode, basePath }: ProposalEditorProps
               onChange={(e) => setClientCompany(e.target.value)}
               placeholder="Company name"
               disabled={!!isReadOnly}
-              className="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-slate-blue focus:ring-offset-1 disabled:bg-gray-100"
+              className="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-inset focus:ring-slate-blue disabled:bg-gray-100"
             />
           </div>
         </div>
