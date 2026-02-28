@@ -49,6 +49,7 @@ export interface ProposalLineItem {
 export interface ProposalCustomSection {
   id: string;
   title: string;
+  subtitle?: string;
   body: string;
   position: number;
 }
@@ -116,6 +117,7 @@ export interface ProposalSectionTemplate {
   account_id: string;
   name: string;
   title: string;
+  subtitle?: string;
   body: string;
   created_at: string;
   updated_at: string;

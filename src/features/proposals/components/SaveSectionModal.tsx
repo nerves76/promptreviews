@@ -11,6 +11,7 @@ interface SaveSectionModalProps {
   onClose: () => void;
   defaultName: string;
   sectionTitle: string;
+  sectionSubtitle?: string;
   sectionBody: string;
 }
 
@@ -19,6 +20,7 @@ export function SaveSectionModal({
   onClose,
   defaultName,
   sectionTitle,
+  sectionSubtitle,
   sectionBody,
 }: SaveSectionModalProps) {
   const [name, setName] = useState(defaultName);
@@ -44,6 +46,7 @@ export function SaveSectionModal({
       await apiClient.post('/proposals/section-templates', {
         name: name.trim(),
         title: sectionTitle,
+        subtitle: sectionSubtitle || null,
         body: sectionBody,
       });
       onClose();

@@ -39,7 +39,7 @@ export function ProposalCustomSectionsEditor({ sections, onChange }: ProposalCus
     );
   };
 
-  const updateSection = (id: string, field: 'title' | 'body', value: string) => {
+  const updateSection = (id: string, field: 'title' | 'subtitle' | 'body', value: string) => {
     onChange(sections.map((s) => (s.id === id ? { ...s, [field]: value } : s)));
   };
 
@@ -51,10 +51,11 @@ export function ProposalCustomSectionsEditor({ sections, onChange }: ProposalCus
     onChange(updated.map((s, i) => ({ ...s, position: i })));
   };
 
-  const handleImport = (title: string, body: string) => {
+  const handleImport = (title: string, body: string, subtitle?: string) => {
     const newSection: ProposalCustomSection = {
       id: generateId(),
       title,
+      subtitle: subtitle || '',
       body,
       position: sections.length,
     };
@@ -113,6 +114,14 @@ export function ProposalCustomSectionsEditor({ sections, onChange }: ProposalCus
               <Icon name="FaTrash" size={14} />
             </button>
           </div>
+          <input
+            type="text"
+            value={section.subtitle || ''}
+            onChange={(e) => updateSection(section.id, 'subtitle', e.target.value)}
+            placeholder="Subtitle (optional)"
+            className="w-full border border-gray-300 rounded px-3 py-1.5 text-sm text-gray-600 focus:outline-none focus:ring-2 focus:ring-slate-blue focus:ring-offset-1 mb-2"
+            aria-label="Section subtitle"
+          />
           <div className="flex justify-end mb-1">
             <button
               type="button"
@@ -166,6 +175,7 @@ export function ProposalCustomSectionsEditor({ sections, onChange }: ProposalCus
         onClose={() => setSaveTarget(null)}
         defaultName={saveTarget?.title || ''}
         sectionTitle={saveTarget?.title || ''}
+        sectionSubtitle={saveTarget?.subtitle || ''}
         sectionBody={saveTarget?.body || ''}
       />
 

@@ -588,6 +588,7 @@ export function ProposalEditor({ proposal, mode, basePath, defaultIsTemplate = f
             {customSections.map((section) => (
               <div key={section.id} className="border border-gray-200 rounded-lg p-4 bg-gray-50">
                 {section.title && <h4 className="font-medium text-gray-900 mb-1">{section.title}</h4>}
+                {section.subtitle && <p className="text-sm text-gray-500 mb-1">{section.subtitle}</p>}
                 {section.body && <p className="text-sm text-gray-600 whitespace-pre-wrap">{section.body}</p>}
               </div>
             ))}

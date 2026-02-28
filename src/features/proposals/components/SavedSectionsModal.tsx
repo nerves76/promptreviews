@@ -12,7 +12,7 @@ import { ProposalSectionTemplate } from '../types';
 interface SavedSectionsModalProps {
   isOpen: boolean;
   onClose: () => void;
-  onImport: (title: string, body: string) => void;
+  onImport: (title: string, body: string, subtitle?: string) => void;
 }
 
 export function SavedSectionsModal({ isOpen, onClose, onImport }: SavedSectionsModalProps) {
@@ -42,7 +42,7 @@ export function SavedSectionsModal({ isOpen, onClose, onImport }: SavedSectionsM
   }, [isOpen, fetchTemplates]);
 
   const handleImport = (template: ProposalSectionTemplate) => {
-    onImport(template.title, template.body);
+    onImport(template.title, template.body, template.subtitle);
     onClose();
   };
 

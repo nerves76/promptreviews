@@ -62,8 +62,12 @@ export function ProposalPreview({ proposal, id, textColor, sowPrefix }: Proposal
         .map((section) => (
           <div key={section.id}>
             {section.title && (
-              <h3 className="text-lg font-semibold mb-2" style={{ color }}>{section.title}</h3>
+              <h3 className="text-lg font-semibold" style={{ color }}>{section.title}</h3>
             )}
+            {section.subtitle && (
+              <p className="text-sm mt-0.5 mb-2" style={{ color: mutedColor }}>{section.subtitle}</p>
+            )}
+            {!section.subtitle && section.title && <div className="mb-2" />}
             {section.body && (
               <div className="text-sm whitespace-pre-wrap leading-relaxed" style={{ color }}>
                 {section.body}
