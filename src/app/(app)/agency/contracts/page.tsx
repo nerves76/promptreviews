@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useEffect, useCallback } from 'react';
+import { useState, useEffect, useCallback, useRef } from 'react';
 import { useRouter } from 'next/navigation';
 import PageCard, { PageCardHeader } from '@/app/(app)/components/PageCard';
 import { Button } from '@/app/(app)/components/ui/button';
@@ -58,6 +58,10 @@ export default function ContractsPage() {
   const [newSection, setNewSection] = useState({ name: '', title: '', body: '' });
   const [newSectionSaving, setNewSectionSaving] = useState(false);
 
+  // New contract modal state
+  const [showNewContractModal, setShowNewContractModal] = useState(false);
+  const templatesFetchedRef = useRef(false);
+
   useEffect(() => {
     async function fetchPrefix() {
       try {
@@ -76,6 +80,7 @@ export default function ContractsPage() {
     try {
       const data = await apiClient.get<{ templates: Proposal[] }>('/proposals/templates');
       setTemplates(data.templates);
+      templatesFetchedRef.current = true;
     } catch {
       showError('Failed to load templates');
     } finally {
@@ -102,6 +107,14 @@ export default function ContractsPage() {
     if (activeTab === 'templates') fetchTemplates();
     if (activeTab === 'sections') fetchSections();
   }, [activeTab, fetchTemplates, fetchSections]);
+
+  // Open the "New contract" modal and fetch templates if needed
+  const handleNewContract = useCallback(() => {
+    setShowNewContractModal(true);
+    if (!templatesFetchedRef.current) {
+      fetchTemplates();
+    }
+  }, [fetchTemplates]);
 
   // --- Contracts handlers ---
 
@@ -213,7 +226,7 @@ export default function ContractsPage() {
         title="Contracts"
         description="Create and manage proposals for your clients"
         actions={
-          <Button onClick={() => router.push(`${basePath}/create`)} className="whitespace-nowrap">
+          <Button onClick={handleNewContract} className="whitespace-nowrap">
             <Icon name="FaPlus" size={14} className="mr-2" />
             New contract
           </Button>
@@ -269,7 +282,7 @@ export default function ContractsPage() {
             <div className="text-center py-12 text-gray-500">
               <Icon name="FaBriefcase" size={32} className="mx-auto mb-3 text-gray-300" />
               <p className="mb-4">No contracts yet</p>
-              <Button onClick={() => router.push(`${basePath}/create`)}>
+              <Button onClick={handleNewContract}>
                 Create your first contract
               </Button>
             </div>
@@ -612,6 +625,87 @@ export default function ContractsPage() {
             )}
           </Button>
         </Modal.Footer>
+      </Modal>
+
+      {/* New contract modal — pick template or start from scratch */}
+      <Modal
+        isOpen={showNewContractModal}
+        onClose={() => setShowNewContractModal(false)}
+        title="New contract"
+        size="md"
+      >
+        <Modal.Body>
+          <Button
+            variant="secondary"
+            onClick={() => {
+              setShowNewContractModal(false);
+              router.push(`${basePath}/create`);
+            }}
+            className="w-full justify-center whitespace-nowrap"
+          >
+            <Icon name="FaPlus" size={14} className="mr-2" />
+            Start from scratch
+          </Button>
+
+          {templatesLoading ? (
+            <div className="text-center py-6 text-gray-500">
+              <Icon name="FaSpinner" size={20} className="animate-spin mx-auto mb-2" />
+              <p className="text-sm">Loading templates...</p>
+            </div>
+          ) : templates.length > 0 ? (
+            <>
+              <div className="relative my-2">
+                <div className="absolute inset-0 flex items-center">
+                  <div className="w-full border-t border-gray-200" />
+                </div>
+                <div className="relative flex justify-center text-xs">
+                  <span className="bg-white px-2 text-gray-500">or choose a template</span>
+                </div>
+              </div>
+
+              <div className="space-y-2">
+                {templates.map((template) => {
+                  const lineItems = Array.isArray(template.line_items) ? template.line_items : [];
+                  const sectionCount = Array.isArray(template.custom_sections) ? template.custom_sections.length : 0;
+                  return (
+                    <div
+                      key={template.id}
+                      className="flex items-center gap-3 border border-gray-200 rounded-lg p-3 hover:bg-gray-50 transition-colors"
+                    >
+                      <div className="flex-1 min-w-0">
+                        <p className="text-sm font-medium text-gray-900 truncate">
+                          {template.template_name || template.title}
+                        </p>
+                        <div className="flex gap-3 mt-0.5 text-xs text-gray-500">
+                          {sectionCount > 0 && (
+                            <span>{sectionCount} section{sectionCount !== 1 ? 's' : ''}</span>
+                          )}
+                          {lineItems.length > 0 && (
+                            <span>{lineItems.length} line item{lineItems.length !== 1 ? 's' : ''}</span>
+                          )}
+                        </div>
+                      </div>
+                      <Button
+                        size="sm"
+                        onClick={() => {
+                          setShowNewContractModal(false);
+                          handleUseTemplate(template.id);
+                        }}
+                        className="whitespace-nowrap shrink-0"
+                      >
+                        Use
+                      </Button>
+                    </div>
+                  );
+                })}
+              </div>
+            </>
+          ) : (
+            <p className="text-center text-xs text-gray-500 mt-2">
+              Save a contract as a template to see it here.
+            </p>
+          )}
+        </Modal.Body>
       </Modal>
 
       <ToastContainer toasts={toasts} onClose={closeToast} />
