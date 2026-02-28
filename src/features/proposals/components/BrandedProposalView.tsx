@@ -225,38 +225,48 @@ export function BrandedProposalView({
             {section.type === 'reviews' && section.reviews && section.reviews.length > 0 ? (
               <>
                 {section.title && <div className="mb-4" />}
-                <div className="grid gap-4 sm:grid-cols-2">
+                <div className="space-y-6">
                   {section.reviews.map((review) => (
-                    <div
-                      key={review.id}
-                      className={`rounded-xl p-4 ${blurEnabled ? 'backdrop-blur-sm' : ''}`}
-                      style={{
-                        backgroundColor: applyCardTransparency(styleConfig.cardBg, Math.min(styleConfig.cardTransparency + 0.05, 1)),
-                        border: cardBorder,
-                        backdropFilter: blurEnabled ? 'blur(4px)' : undefined,
-                        boxShadow: styleConfig.cardInnerShadow ? innerShadow : undefined,
-                      }}
-                    >
-                      <StarRating rating={review.star_rating} size={14} />
-                      <p
-                        className="text-sm leading-relaxed mt-2 line-clamp-4"
-                        style={{ color }}
+                    <div key={review.id} className="relative px-2">
+                      {/* Decorative open quote */}
+                      <span
+                        className="absolute -top-2 -left-1 text-5xl font-serif leading-none select-none pointer-events-none"
+                        style={{ color: `${color}20` }}
+                        aria-hidden="true"
                       >
-                        {review.review_content}
-                      </p>
-                      <div className="flex items-center gap-2 mt-3">
-                        <span className="text-sm font-medium" style={{ color }}>
-                          {review.reviewer_name}
-                        </span>
-                        {review.platform && (
-                          <span
-                            className="text-xs px-1.5 py-0.5 rounded"
-                            style={{ color: mutedColor, backgroundColor: applyCardTransparency(styleConfig.cardBg, Math.min(styleConfig.cardTransparency + 0.1, 1)) }}
-                          >
-                            {review.platform}
+                        &ldquo;
+                      </span>
+                      <div className="pl-6 pr-6">
+                        <StarRating rating={review.star_rating} size={16} />
+                        <p
+                          className="text-base leading-relaxed mt-2"
+                          style={{ color }}
+                        >
+                          {review.review_content}
+                        </p>
+                        <div className="flex items-center gap-2 mt-3">
+                          <span className="text-sm font-semibold" style={{ color }}>
+                            &mdash; {review.reviewer_name}
                           </span>
-                        )}
+                          {review.platform && (
+                            <span className="text-xs" style={{ color: mutedColor }}>
+                              via {review.platform}
+                            </span>
+                          )}
+                        </div>
                       </div>
+                      {/* Decorative close quote */}
+                      <span
+                        className="absolute -bottom-3 -right-1 text-5xl font-serif leading-none select-none pointer-events-none"
+                        style={{ color: `${color}20` }}
+                        aria-hidden="true"
+                      >
+                        &rdquo;
+                      </span>
+                      {/* Separator between reviews (not after last) */}
+                      {section.reviews!.indexOf(review) < section.reviews!.length - 1 && (
+                        <div className="mt-5" style={{ borderBottom: `1px solid ${color}15` }} />
+                      )}
                     </div>
                   ))}
                 </div>
