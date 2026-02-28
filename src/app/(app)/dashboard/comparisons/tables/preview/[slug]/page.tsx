@@ -255,7 +255,7 @@ export default function PreviewTablePage({ params }: { params: Promise<{ slug: s
                       </div>
                     </th>
                     {/* Prompt Reviews column - highlighted */}
-                    <th className="px-4 py-6 text-center align-top bg-white/10 border-x border-white/10 min-w-[140px]">
+                    <th className="px-4 py-6 text-center align-top border-x border-white/20 min-w-[140px]">
                       <div className="relative group">
                         <div className="flex flex-col items-center gap-3 cursor-pointer">
                           <div className="w-14 h-14 flex-shrink-0 rounded-2xl bg-gradient-to-br from-indigo-400 to-purple-500 flex items-center justify-center shadow-lg shadow-indigo-500/30 transition-transform group-hover:scale-105">
@@ -280,7 +280,7 @@ export default function PreviewTablePage({ params }: { params: Promise<{ slug: s
                     {displayedCompetitors.map((comp) => {
                       const availableForSwap = getAvailableForSwap(comp.id);
                       return (
-                        <th key={comp.id} className="px-4 py-6 text-center align-top min-w-[140px]">
+                        <th key={comp.id} className="px-4 py-6 text-center align-top border-l border-white/20 min-w-[140px]">
                           <div className="relative group">
                             <div className="flex flex-col items-center gap-3 cursor-pointer">
                               <div className="w-14 h-14 flex-shrink-0 rounded-2xl bg-gradient-to-br from-indigo-300/50 to-purple-400/50 flex items-center justify-center overflow-hidden transition-transform group-hover:scale-105">
@@ -335,8 +335,8 @@ export default function PreviewTablePage({ params }: { params: Promise<{ slug: s
                   </tr>
                 </thead>
 
-                {/* Body */}
-                <tbody>
+                {/* Body - frosted glass on body only, header stays transparent */}
+                <tbody className="bg-white/10 backdrop-blur-2xl">
                   {/* Pricing row - first row for visibility */}
                   {displayedCompetitors.some(c => c.pricing_description) && (
                     <>
