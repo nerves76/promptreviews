@@ -4,6 +4,7 @@ import { useState } from 'react';
 import { ProposalCustomSection } from '../types';
 import { SavedSectionsModal } from './SavedSectionsModal';
 import { SaveSectionModal } from './SaveSectionModal';
+import { EnhanceSectionModal } from './EnhanceSectionModal';
 import Icon from '@/components/Icon';
 
 interface ProposalCustomSectionsEditorProps {
@@ -18,6 +19,7 @@ function generateId() {
 export function ProposalCustomSectionsEditor({ sections, onChange }: ProposalCustomSectionsEditorProps) {
   const [showImportModal, setShowImportModal] = useState(false);
   const [saveTarget, setSaveTarget] = useState<ProposalCustomSection | null>(null);
+  const [enhanceTarget, setEnhanceTarget] = useState<ProposalCustomSection | null>(null);
 
   const addSection = () => {
     const newSection: ProposalCustomSection = {
@@ -111,6 +113,18 @@ export function ProposalCustomSectionsEditor({ sections, onChange }: ProposalCus
               <Icon name="FaTrash" size={14} />
             </button>
           </div>
+          <div className="flex justify-end mb-1">
+            <button
+              type="button"
+              onClick={() => setEnhanceTarget(section)}
+              disabled={section.body.trim().length < 10}
+              className="flex items-center gap-1.5 px-2.5 py-1 text-xs font-medium text-slate-blue hover:bg-slate-blue/10 rounded-md transition-colors disabled:opacity-30 disabled:cursor-not-allowed"
+              aria-label="Enhance section with AI"
+            >
+              <Icon name="prompty" size={16} className="text-slate-blue" />
+              Enhance with AI
+            </button>
+          </div>
           <textarea
             value={section.body}
             onChange={(e) => updateSection(section.id, 'body', e.target.value)}
@@ -154,6 +168,16 @@ export function ProposalCustomSectionsEditor({ sections, onChange }: ProposalCus
         sectionTitle={saveTarget?.title || ''}
         sectionBody={saveTarget?.body || ''}
       />
+
+      {enhanceTarget && (
+        <EnhanceSectionModal
+          isOpen={!!enhanceTarget}
+          onClose={() => setEnhanceTarget(null)}
+          sectionTitle={enhanceTarget.title}
+          sectionBody={enhanceTarget.body}
+          onAccept={(text) => updateSection(enhanceTarget.id, 'body', text)}
+        />
+      )}
     </div>
   );
 }
