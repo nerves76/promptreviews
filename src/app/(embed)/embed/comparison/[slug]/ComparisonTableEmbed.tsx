@@ -263,9 +263,13 @@ export default function ComparisonTableEmbed({ data }: Props) {
                 {hasPricing && (
                   <>
                     <tr className="pr-category-row">
-                      <td colSpan={colCount}>
+                      <td>
                         <span style={{ marginRight: 8 }}>{'\uD83D\uDCB0'}</span>Pricing
                       </td>
+                      <td className="pr-category-name">Prompt Reviews</td>
+                      {displayedCompetitors.map(comp => (
+                        <td key={comp.id} className="pr-category-name">{comp.name}</td>
+                      ))}
                     </tr>
                     <tr>
                       <td className="pr-feature-name">Plans & pricing</td>
@@ -337,10 +341,14 @@ function CategorySection({
   return (
     <>
       <tr className="pr-category-row">
-        <td colSpan={colCount}>
+        <td>
           {iconChar && <span style={{ marginRight: 8 }}>{iconChar}</span>}
           {category.name}
         </td>
+        <td className="pr-category-name">Prompt Reviews</td>
+        {competitors.map(comp => (
+          <td key={comp.id} className="pr-category-name">{comp.name}</td>
+        ))}
       </tr>
       {category.features.map(feature => {
         const prFeature = promptReviewsFeatures[feature.slug] || {
@@ -613,6 +621,15 @@ const EMBED_STYLES = `
     color: white;
     padding: 12px 16px;
     border-bottom: 2px solid rgba(255, 255, 255, 0.2);
+  }
+
+  .pr-category-name {
+    font-size: 11px;
+    font-weight: 500;
+    text-transform: none;
+    letter-spacing: 0;
+    color: rgba(255, 255, 255, 0.7);
+    text-align: center !important;
   }
 
   .pr-feature-name {
