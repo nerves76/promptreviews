@@ -8,7 +8,6 @@ import { useProposal } from '@/features/proposals/hooks/useProposal';
 import { PROPOSAL_STATUS_LABELS } from '@/features/proposals/types';
 import { exportProposalToPdf } from '@/features/proposals/utils/pdfExport';
 import { apiClient } from '@/utils/apiClient';
-import { useBusiness } from '@/auth/context/BusinessContext';
 import { GLASSY_DEFAULTS } from '@/app/(app)/config/styleDefaults';
 import { BrandedProposalView, StyleConfig } from '@/features/proposals/components/BrandedProposalView';
 
@@ -59,7 +58,8 @@ export default function ContractPreviewPage({ params }: { params: Promise<{ id: 
   const { id } = use(params);
   const router = useRouter();
   const { proposal, loading, error, refetch } = useProposal(id);
-  const { business, businessLoading } = useBusiness();
+  const [business, setBusiness] = useState<any>(null);
+  const [businessLoading, setBusinessLoading] = useState(true);
   const [sending, setSending] = useState(false);
   const [sendError, setSendError] = useState<string | null>(null);
   const [sendSuccess, setSendSuccess] = useState(false);
@@ -67,15 +67,21 @@ export default function ContractPreviewPage({ params }: { params: Promise<{ id: 
   const [hashVerified, setHashVerified] = useState<boolean | null>(null);
 
   useEffect(() => {
-    async function fetchPrefix() {
+    async function fetchData() {
       try {
-        const data = await apiClient.get<{ sow_prefix: string | null }>('/proposals/sow-prefix');
-        setSowPrefix(data.sow_prefix);
+        const [bizRes, prefixRes] = await Promise.all([
+          apiClient.get<{ business: any }>('/businesses/current').catch(() => ({ business: null })),
+          apiClient.get<{ sow_prefix: string | null }>('/proposals/sow-prefix').catch(() => ({ sow_prefix: null })),
+        ]);
+        setBusiness(bizRes.business);
+        setSowPrefix(prefixRes.sow_prefix);
       } catch {
-        // Non-critical
+        // Non-critical — will fall back to defaults
+      } finally {
+        setBusinessLoading(false);
       }
     }
-    fetchPrefix();
+    fetchData();
   }, []);
 
   // Verify document hash when proposal with signature is loaded
