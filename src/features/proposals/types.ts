@@ -73,6 +73,8 @@ export interface ProposalCustomSection {
   body: string;
   position: number;
   reviews?: ProposalReviewItem[];
+  /** When false, reviews render directly on the background without a card wrapper. Defaults to true. */
+  reviews_on_card?: boolean;
 }
 
 // --- Proposal Signature ---
@@ -140,6 +142,17 @@ export interface ProposalSectionTemplate {
   name: string;
   title: string;
   subtitle?: string;
+  body: string;
+  created_at: string;
+  updated_at: string;
+}
+
+// --- Terms Templates ---
+
+export interface ProposalTermsTemplate {
+  id: string;
+  account_id: string;
+  name: string;
   body: string;
   created_at: string;
   updated_at: string;

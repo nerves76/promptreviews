@@ -608,6 +608,7 @@ model accounts {
   prompt_pages                                                        prompt_pages[]
   proposal_section_templates                                          proposal_section_templates[]
   proposal_signatures                                                 proposal_signatures[]
+  proposal_terms_templates                                            proposal_terms_templates[]
   proposals                                                           proposals[]
   rank_batch_runs                                                     rank_batch_runs[]
   rank_checks                                                         rank_checks[]
@@ -4739,6 +4740,21 @@ model proposals {
   @@index([account_id, status], map: "idx_proposals_account_status")
   @@index([contact_id], map: "idx_proposals_contact_id")
   @@index([token], map: "idx_proposals_token")
+  @@schema("public")
+}
+
+/// This model contains row level security and requires additional setup for migrations. Visit https://pris.ly/d/row-level-security for more info.
+model proposal_terms_templates {
+  id         String   @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  account_id String   @db.Uuid
+  name       String
+  body       String   @default("")
+  created_at DateTime @default(now()) @db.Timestamptz(6)
+  updated_at DateTime @default(now()) @db.Timestamptz(6)
+  accounts   accounts @relation(fields: [account_id], references: [id], onDelete: Cascade, onUpdate: NoAction)
+
+  @@unique([account_id, name], map: "idx_proposal_terms_templates_account_name")
+  @@index([account_id], map: "idx_proposal_terms_templates_account_id")
   @@schema("public")
 }
 

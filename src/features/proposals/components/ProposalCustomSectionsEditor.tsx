@@ -141,6 +141,28 @@ export function ProposalCustomSectionsEditor({ sections, onChange }: ProposalCus
                 {section.reviews!.length} review{section.reviews!.length === 1 ? '' : 's'}
               </span>
             )}
+            {isReviewsSection(section) && (
+              <div className="flex items-center rounded-md border border-gray-200 overflow-hidden" role="group" aria-label="Review display style">
+                <button
+                  type="button"
+                  onClick={() => onChange(sections.map((s) => s.id === section.id ? { ...s, reviews_on_card: true } : s))}
+                  className={`p-1.5 transition-colors ${section.reviews_on_card !== false ? 'bg-slate-blue text-white' : 'text-gray-400 hover:text-gray-600'}`}
+                  aria-label="Display reviews on card"
+                  title="On card"
+                >
+                  <Icon name="FaFileAlt" size={12} />
+                </button>
+                <button
+                  type="button"
+                  onClick={() => onChange(sections.map((s) => s.id === section.id ? { ...s, reviews_on_card: false } : s))}
+                  className={`p-1.5 transition-colors ${section.reviews_on_card === false ? 'bg-slate-blue text-white' : 'text-gray-400 hover:text-gray-600'}`}
+                  aria-label="Display reviews off card"
+                  title="Off card (floating)"
+                >
+                  <Icon name="FaGlobe" size={12} />
+                </button>
+              </div>
+            )}
             {!isReviewsSection(section) && (
               <button
                 type="button"

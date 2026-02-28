@@ -10,6 +10,8 @@ import { formatSowNumber } from '../sowHelpers';
 import { useBusinessData } from '@/auth/hooks/granularAuthHooks';
 import { ProposalLineItemsEditor } from './ProposalLineItemsEditor';
 import { ProposalCustomSectionsEditor } from './ProposalCustomSectionsEditor';
+import { SavedTermsModal } from './SavedTermsModal';
+import { SaveTermsModal } from './SaveTermsModal';
 
 interface ContactSuggestion {
   id: string;
@@ -68,6 +70,10 @@ export function ProposalEditor({ proposal, mode, basePath, defaultIsTemplate = f
     Array.isArray(proposal?.line_items) ? proposal.line_items : []
   );
   const [status, setStatus] = useState<ProposalStatus>(proposal?.status || 'draft');
+
+  // Terms template modals
+  const [showSavedTerms, setShowSavedTerms] = useState(false);
+  const [showSaveTerms, setShowSaveTerms] = useState(false);
 
   // Fetch SOW prefix on mount
   useEffect(() => {
@@ -648,6 +654,27 @@ export function ProposalEditor({ proposal, mode, basePath, defaultIsTemplate = f
             />
             <span className="text-sm font-medium text-gray-700">Include terms & conditions</span>
           </label>
+          {!isReadOnly && (
+            <div className="flex items-center gap-3 ml-auto">
+              <button
+                type="button"
+                onClick={() => setShowSavedTerms(true)}
+                className="inline-flex items-center gap-1 text-xs text-slate-blue hover:text-slate-blue/80 transition-colors"
+              >
+                <Icon name="FaSave" size={11} />
+                Import saved terms
+              </button>
+              <button
+                type="button"
+                onClick={() => setShowSaveTerms(true)}
+                disabled={!termsContent.trim()}
+                className="inline-flex items-center gap-1 text-xs text-slate-blue hover:text-slate-blue/80 transition-colors disabled:opacity-40 disabled:cursor-not-allowed"
+              >
+                <Icon name="FaBookmark" size={11} />
+                Save to library
+              </button>
+            </div>
+          )}
         </div>
         {showTerms && (
           <textarea
@@ -661,6 +688,22 @@ export function ProposalEditor({ proposal, mode, basePath, defaultIsTemplate = f
           />
         )}
       </div>
+
+      {/* Terms template modals */}
+      <SavedTermsModal
+        isOpen={showSavedTerms}
+        onClose={() => setShowSavedTerms(false)}
+        onImport={(body) => {
+          setTermsContent(body);
+          if (!showTerms) setShowTerms(true);
+        }}
+      />
+      <SaveTermsModal
+        isOpen={showSaveTerms}
+        onClose={() => setShowSaveTerms(false)}
+        defaultName=""
+        termsBody={termsContent}
+      />
 
       {/* Business info preview */}
       {proposal && (proposal.business_name || proposal.business_email) && (

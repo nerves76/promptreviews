@@ -2,7 +2,7 @@
 
 import { useState, useEffect, useRef, useCallback, useMemo } from 'react';
 import Image from 'next/image';
-import { applyCardTransparency } from '@/utils/colorUtils';
+import { applyCardTransparency, getContrastTextColor, contrastRatio } from '@/utils/colorUtils';
 import { Proposal, ProposalCustomSection, ProposalLineItem, PricingType } from '@/features/proposals/types';
 import StarRating from '@/app/(app)/dashboard/widget/components/shared/StarRating';
 import { formatSowNumber } from '@/features/proposals/sowHelpers';
@@ -95,6 +95,20 @@ export function BrandedProposalView({
       ? `0 20px 25px -5px rgba(0,0,0,0.1), 0 8px 10px -6px rgba(0,0,0,0.1), ${innerShadow}`
       : undefined,
   };
+
+  // Off-card reviews: use cardText (respects user's style settings) with a
+  // contrast-check fallback. Cards are semi-transparent so cardText is already
+  // chosen to work against backgrounds that show through.
+  const effectiveBgHex = styleConfig.backgroundType === 'solid'
+    ? styleConfig.backgroundColor
+    : styleConfig.gradientMiddle;
+  const offCardTextColor = contrastRatio(color, effectiveBgHex) >= 3
+    ? color
+    : getContrastTextColor(effectiveBgHex);
+  const offCardMutedColor = `${offCardTextColor}B3`;
+
+  // Opaque card background for nav dots (no transparency)
+  const cardBgOpaque = styleConfig.cardBg;
 
   const sections: ProposalCustomSection[] = Array.isArray(proposal.custom_sections)
     ? [...proposal.custom_sections].sort((a, b) => a.position - b.position)
@@ -193,7 +207,7 @@ export function BrandedProposalView({
                     style={{
                       top: '-12px',
                       height: '12px',
-                      backgroundColor: `${color}30`,
+                      backgroundColor: `${cardBgOpaque}40`,
                     }}
                   />
                 )}
@@ -204,7 +218,7 @@ export function BrandedProposalView({
                   style={{
                     width: isActive ? '12px' : '8px',
                     height: isActive ? '12px' : '8px',
-                    backgroundColor: isActive ? styleConfig.primaryColor : `${color}4D`,
+                    backgroundColor: isActive ? styleConfig.primaryColor : `${cardBgOpaque}80`,
                     boxShadow: isActive ? `0 0 8px ${styleConfig.primaryColor}66` : 'none',
                   }}
                   aria-label={`Go to ${item.label}`}
@@ -361,76 +375,87 @@ export function BrandedProposalView({
           )}
         </div>
 
-        {/* Each custom section in its own card */}
-        {sections.map((section) => (
-          <div key={section.id} id={`proposal-section-${section.id}`} className={`${cardClasses} mt-6 scroll-mt-16`} style={cardStyle}>
-            {section.title && (
-              <h3 className="text-lg font-semibold" style={{ color }}>{section.title}</h3>
-            )}
-            {section.type === 'reviews' && section.reviews && section.reviews.length > 0 ? (
-              <>
-                {section.title && <div className="mb-4" />}
-                <div className="space-y-6">
-                  {section.reviews.map((review) => (
-                    <div key={review.id} className="relative px-2">
-                      {/* Decorative open quote */}
-                      <span
-                        className="absolute -top-2 -left-1 text-5xl font-serif leading-none select-none pointer-events-none"
-                        style={{ color: `${color}20` }}
-                        aria-hidden="true"
-                      >
-                        &ldquo;
-                      </span>
-                      <div className="pl-6 pr-6">
-                        <StarRating rating={review.star_rating} size={16} />
-                        <p
-                          className="text-base leading-relaxed mt-2"
-                          style={{ color }}
+        {/* Each custom section in its own card (or off-card for reviews) */}
+        {sections.map((section) => {
+          const isOffCardReviews = section.type === 'reviews' && section.reviews_on_card === false;
+          const sectionColor = isOffCardReviews ? offCardTextColor : color;
+          const sectionMuted = isOffCardReviews ? offCardMutedColor : mutedColor;
+
+          return (
+            <div
+              key={section.id}
+              id={`proposal-section-${section.id}`}
+              className={isOffCardReviews ? 'mt-6 scroll-mt-16 px-6 sm:px-8 py-6' : `${cardClasses} mt-6 scroll-mt-16`}
+              style={isOffCardReviews ? undefined : cardStyle}
+            >
+              {section.title && (
+                <h3 className="text-lg font-semibold" style={{ color: sectionColor }}>{section.title}</h3>
+              )}
+              {section.type === 'reviews' && section.reviews && section.reviews.length > 0 ? (
+                <>
+                  {section.title && <div className="mb-4" />}
+                  <div className="space-y-6">
+                    {section.reviews.map((review) => (
+                      <div key={review.id} className="relative px-2">
+                        {/* Decorative open quote */}
+                        <span
+                          className="absolute -top-2 -left-1 text-5xl font-serif leading-none select-none pointer-events-none"
+                          style={{ color: `${sectionColor}20` }}
+                          aria-hidden="true"
                         >
-                          {review.review_content}
-                        </p>
-                        <div className="flex items-center gap-2 mt-3">
-                          <span className="text-sm font-semibold" style={{ color }}>
-                            &mdash; {review.reviewer_name}
-                          </span>
-                          {review.platform && (
-                            <span className="text-xs" style={{ color: mutedColor }}>
-                              via {review.platform}
+                          &ldquo;
+                        </span>
+                        <div className="pl-6 pr-6">
+                          <StarRating rating={review.star_rating} size={16} />
+                          <p
+                            className="text-base leading-relaxed mt-2"
+                            style={{ color: sectionColor }}
+                          >
+                            {review.review_content}
+                          </p>
+                          <div className="flex items-center gap-2 mt-3">
+                            <span className="text-sm font-semibold" style={{ color: sectionColor }}>
+                              &mdash; {review.reviewer_name}
                             </span>
-                          )}
+                            {review.platform && (
+                              <span className="text-xs" style={{ color: sectionMuted }}>
+                                via {review.platform}
+                              </span>
+                            )}
+                          </div>
                         </div>
+                        {/* Decorative close quote */}
+                        <span
+                          className="absolute -bottom-3 -right-1 text-5xl font-serif leading-none select-none pointer-events-none"
+                          style={{ color: `${sectionColor}20` }}
+                          aria-hidden="true"
+                        >
+                          &rdquo;
+                        </span>
+                        {/* Separator between reviews (not after last) */}
+                        {section.reviews!.indexOf(review) < section.reviews!.length - 1 && (
+                          <div className="mt-5" style={{ borderBottom: `1px solid ${sectionColor}15` }} />
+                        )}
                       </div>
-                      {/* Decorative close quote */}
-                      <span
-                        className="absolute -bottom-3 -right-1 text-5xl font-serif leading-none select-none pointer-events-none"
-                        style={{ color: `${color}20` }}
-                        aria-hidden="true"
-                      >
-                        &rdquo;
-                      </span>
-                      {/* Separator between reviews (not after last) */}
-                      {section.reviews!.indexOf(review) < section.reviews!.length - 1 && (
-                        <div className="mt-5" style={{ borderBottom: `1px solid ${color}15` }} />
-                      )}
-                    </div>
-                  ))}
-                </div>
-              </>
-            ) : (
-              <>
-                {section.subtitle && (
-                  <p className="text-sm mt-0.5 mb-2" style={{ color: mutedColor }}>{section.subtitle}</p>
-                )}
-                {!section.subtitle && section.title && <div className="mb-2" />}
-                {section.body && (
-                  <div className="text-sm whitespace-pre-wrap leading-relaxed" style={{ color }}>
-                    {section.body}
+                    ))}
                   </div>
-                )}
-              </>
-            )}
-          </div>
-        ))}
+                </>
+              ) : (
+                <>
+                  {section.subtitle && (
+                    <p className="text-sm mt-0.5 mb-2" style={{ color: sectionMuted }}>{section.subtitle}</p>
+                  )}
+                  {!section.subtitle && section.title && <div className="mb-2" />}
+                  {section.body && (
+                    <div className="text-sm whitespace-pre-wrap leading-relaxed" style={{ color: sectionColor }}>
+                      {section.body}
+                    </div>
+                  )}
+                </>
+              )}
+            </div>
+          );
+        })}
 
         {/* Pricing card */}
         {proposal.show_pricing && lineItems.length > 0 && (
