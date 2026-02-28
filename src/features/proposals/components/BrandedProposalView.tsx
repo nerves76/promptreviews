@@ -76,11 +76,18 @@ export function BrandedProposalView({
   const color = styleConfig.cardText;
   const mutedColor = `${color}B3`;
 
+  const innerShadow = styleConfig.cardInnerShadow
+    ? 'inset 0 2px 4px 0 rgba(0,0,0,0.2), inset 0 1px 2px 0 rgba(0,0,0,0.15)'
+    : 'none';
+
   const cardClasses = `rounded-2xl p-6 sm:p-8 shadow-xl ${blurEnabled ? 'backdrop-blur-sm' : ''}`;
-  const cardStyle = {
+  const cardStyle: React.CSSProperties = {
     backgroundColor: cardBg,
     border: cardBorder,
     backdropFilter: blurEnabled ? 'blur(8px)' : undefined,
+    boxShadow: styleConfig.cardInnerShadow
+      ? `0 20px 25px -5px rgba(0,0,0,0.1), 0 8px 10px -6px rgba(0,0,0,0.1), ${innerShadow}`
+      : undefined,
   };
 
   const sections: ProposalCustomSection[] = Array.isArray(proposal.custom_sections)
@@ -222,10 +229,12 @@ export function BrandedProposalView({
                   {section.reviews.map((review) => (
                     <div
                       key={review.id}
-                      className="rounded-xl p-4"
+                      className={`rounded-xl p-4 ${blurEnabled ? 'backdrop-blur-sm' : ''}`}
                       style={{
-                        backgroundColor: `${color}08`,
-                        border: `1px solid ${color}15`,
+                        backgroundColor: applyCardTransparency(styleConfig.cardBg, Math.min(styleConfig.cardTransparency + 0.05, 1)),
+                        border: cardBorder,
+                        backdropFilter: blurEnabled ? 'blur(4px)' : undefined,
+                        boxShadow: styleConfig.cardInnerShadow ? innerShadow : undefined,
                       }}
                     >
                       <StarRating rating={review.star_rating} size={14} />
@@ -242,7 +251,7 @@ export function BrandedProposalView({
                         {review.platform && (
                           <span
                             className="text-xs px-1.5 py-0.5 rounded"
-                            style={{ color: mutedColor, backgroundColor: `${color}0A` }}
+                            style={{ color: mutedColor, backgroundColor: applyCardTransparency(styleConfig.cardBg, Math.min(styleConfig.cardTransparency + 0.1, 1)) }}
                           >
                             {review.platform}
                           </span>
