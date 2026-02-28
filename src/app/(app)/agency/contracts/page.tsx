@@ -226,9 +226,25 @@ export default function ContractsPage() {
         title="Contracts"
         description="Create and manage proposals for your clients"
         actions={
-          <Button onClick={handleNewContract} className="whitespace-nowrap">
+          <Button
+            onClick={
+              activeTab === 'contracts'
+                ? handleNewContract
+                : activeTab === 'templates'
+                  ? () => router.push(`${basePath}/create?template=true`)
+                  : () => {
+                      setNewSection({ name: '', title: '', body: '' });
+                      setShowNewSection(true);
+                    }
+            }
+            className="whitespace-nowrap"
+          >
             <Icon name="FaPlus" size={14} className="mr-2" />
-            New contract
+            {activeTab === 'contracts'
+              ? 'New contract'
+              : activeTab === 'templates'
+                ? 'New template'
+                : 'New section'}
           </Button>
         }
       />
@@ -389,16 +405,6 @@ export default function ContractsPage() {
       {/* ===== TEMPLATES TAB ===== */}
       {activeTab === 'templates' && (
         <>
-          <div className="flex justify-end mb-4">
-            <Button
-              size="sm"
-              onClick={() => router.push(`${basePath}/create?template=true`)}
-              className="whitespace-nowrap"
-            >
-              <Icon name="FaPlus" size={12} className="mr-1.5" />
-              New template
-            </Button>
-          </div>
           {templatesLoading ? (
             <div className="text-center py-12 text-gray-500">
               <Icon name="FaSpinner" size={20} className="animate-spin mx-auto mb-2" />
@@ -474,19 +480,6 @@ export default function ContractsPage() {
       {/* ===== SECTIONS TAB ===== */}
       {activeTab === 'sections' && (
         <>
-          <div className="flex justify-end mb-4">
-            <Button
-              size="sm"
-              onClick={() => {
-                setNewSection({ name: '', title: '', body: '' });
-                setShowNewSection(true);
-              }}
-              className="whitespace-nowrap"
-            >
-              <Icon name="FaPlus" size={12} className="mr-1.5" />
-              New section
-            </Button>
-          </div>
           {sectionsLoading ? (
             <div className="text-center py-12 text-gray-500">
               <Icon name="FaSpinner" size={20} className="animate-spin mx-auto mb-2" />
