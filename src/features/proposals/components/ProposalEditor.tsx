@@ -56,7 +56,7 @@ export function ProposalEditor({ proposal, mode, basePath, defaultIsTemplate = f
   const [clientEmail, setClientEmail] = useState(proposal?.client_email || '');
   const [clientCompany, setClientCompany] = useState(proposal?.client_company || '');
   const [contactId, setContactId] = useState<string | null>(proposal?.contact_id || null);
-  const [businessAddress, setBusinessAddress] = useState(proposal?.business_address || business?.address || '');
+  const businessAddress = business?.address || '';
   const [showPricing, setShowPricing] = useState(proposal?.show_pricing ?? true);
   const [showTerms, setShowTerms] = useState(proposal?.show_terms ?? false);
   const [termsContent, setTermsContent] = useState(proposal?.terms_content || '');
@@ -95,7 +95,6 @@ export function ProposalEditor({ proposal, mode, basePath, defaultIsTemplate = f
       setClientEmail(proposal.client_email || '');
       setClientCompany(proposal.client_company || '');
       setContactId(proposal.contact_id || null);
-      setBusinessAddress(proposal.business_address || '');
       setShowPricing(proposal.show_pricing ?? true);
       setShowTerms(proposal.show_terms ?? false);
       setShowSowNumber(proposal.show_sow_number ?? true);
@@ -154,7 +153,6 @@ export function ProposalEditor({ proposal, mode, basePath, defaultIsTemplate = f
     setClientLastName(parts.slice(1).join(' ') || '');
     setClientEmail(contact.email || '');
     setClientCompany(contact.company || '');
-    if (contact.address) setBusinessAddress(contact.address);
     setShowSuggestions(false);
     setContactSuggestions([]);
   };
@@ -559,24 +557,6 @@ export function ProposalEditor({ proposal, mode, basePath, defaultIsTemplate = f
           </div>
         )}
       </div>}
-
-      {/* Business address (optional) — hidden for templates */}
-      {!isTemplate && (
-        <div>
-          <label htmlFor="business-address" className="block text-sm font-medium text-gray-700 mb-1">
-            Business address <span className="text-xs font-normal text-gray-500">(optional)</span>
-          </label>
-          <input
-            id="business-address"
-            type="text"
-            value={businessAddress}
-            onChange={(e) => setBusinessAddress(e.target.value)}
-            placeholder="e.g. 123 Main St, Suite 100, City, ST 12345"
-            disabled={!!isReadOnly}
-            className="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-inset focus:ring-slate-blue disabled:bg-gray-100"
-          />
-        </div>
-      )}
 
       {/* Custom sections */}
       <div>
