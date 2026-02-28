@@ -15,6 +15,7 @@ interface ContactSuggestion {
   name: string;
   email: string;
   company?: string | null;
+  address?: string | null;
 }
 
 interface ProposalEditorProps {
@@ -51,6 +52,7 @@ export function ProposalEditor({ proposal, mode, basePath }: ProposalEditorProps
   const [clientEmail, setClientEmail] = useState(proposal?.client_email || '');
   const [clientCompany, setClientCompany] = useState(proposal?.client_company || '');
   const [contactId, setContactId] = useState<string | null>(proposal?.contact_id || null);
+  const [businessAddress, setBusinessAddress] = useState(proposal?.business_address || '');
   const [showPricing, setShowPricing] = useState(proposal?.show_pricing ?? true);
   const [showTerms, setShowTerms] = useState(proposal?.show_terms ?? false);
   const [termsContent, setTermsContent] = useState(proposal?.terms_content || '');
@@ -89,6 +91,7 @@ export function ProposalEditor({ proposal, mode, basePath }: ProposalEditorProps
       setClientEmail(proposal.client_email || '');
       setClientCompany(proposal.client_company || '');
       setContactId(proposal.contact_id || null);
+      setBusinessAddress(proposal.business_address || '');
       setShowPricing(proposal.show_pricing ?? true);
       setShowTerms(proposal.show_terms ?? false);
       setShowSowNumber(proposal.show_sow_number ?? true);
@@ -99,9 +102,13 @@ export function ProposalEditor({ proposal, mode, basePath }: ProposalEditorProps
     }
   }, [proposal, mode]);
 
-  // Debounced contact search when typing name fields
+  // Debounced contact search when typing email or name fields
   useEffect(() => {
-    const query = `${clientFirstName} ${clientLastName}`.trim();
+    // Prefer email as search query (more accurate), fall back to name
+    const emailQuery = clientEmail.trim();
+    const nameQuery = `${clientFirstName} ${clientLastName}`.trim();
+    const query = emailQuery.length >= 2 ? emailQuery : nameQuery;
+
     if (query.length < 2 || contactId) {
       setContactSuggestions([]);
       setShowSuggestions(false);
@@ -123,7 +130,7 @@ export function ProposalEditor({ proposal, mode, basePath }: ProposalEditorProps
     }, 300);
 
     return () => clearTimeout(timer);
-  }, [clientFirstName, clientLastName, contactId]);
+  }, [clientEmail, clientFirstName, clientLastName, contactId]);
 
   // Close suggestions on click outside
   useEffect(() => {
@@ -143,6 +150,7 @@ export function ProposalEditor({ proposal, mode, basePath }: ProposalEditorProps
     setClientLastName(parts.slice(1).join(' ') || '');
     setClientEmail(contact.email || '');
     setClientCompany(contact.company || '');
+    if (contact.address) setBusinessAddress(contact.address);
     setShowSuggestions(false);
     setContactSuggestions([]);
   };
@@ -199,6 +207,7 @@ export function ProposalEditor({ proposal, mode, basePath }: ProposalEditorProps
         client_email: clientEmail.trim() || null,
         client_company: clientCompany.trim() || null,
         contact_id: contactId,
+        business_address: businessAddress.trim() || null,
         show_pricing: showPricing,
         show_terms: showTerms,
         show_sow_number: showSowNumber,
@@ -453,6 +462,20 @@ export function ProposalEditor({ proposal, mode, basePath }: ProposalEditorProps
         </div>
         <div className="grid grid-cols-1 sm:grid-cols-4 gap-4">
           <div>
+            <label htmlFor="client-email" className="block text-xs text-gray-500 mb-1">Email</label>
+            <input
+              id="client-email"
+              type="email"
+              value={clientEmail}
+              onChange={(e) => { setClientEmail(e.target.value); if (contactId) setContactId(null); }}
+              onFocus={() => { if (contactSuggestions.length > 0) setShowSuggestions(true); }}
+              placeholder="client@example.com"
+              disabled={!!isReadOnly}
+              autoComplete="off"
+              className="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-inset focus:ring-slate-blue disabled:bg-gray-100"
+            />
+          </div>
+          <div>
             <label htmlFor="client-first-name" className="block text-xs text-gray-500 mb-1">First name</label>
             <input
               id="client-first-name"
@@ -477,18 +500,6 @@ export function ProposalEditor({ proposal, mode, basePath }: ProposalEditorProps
               placeholder="Last"
               disabled={!!isReadOnly}
               autoComplete="off"
-              className="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-inset focus:ring-slate-blue disabled:bg-gray-100"
-            />
-          </div>
-          <div>
-            <label htmlFor="client-email" className="block text-xs text-gray-500 mb-1">Email</label>
-            <input
-              id="client-email"
-              type="email"
-              value={clientEmail}
-              onChange={(e) => setClientEmail(e.target.value)}
-              placeholder="client@example.com"
-              disabled={!!isReadOnly}
               className="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-inset focus:ring-slate-blue disabled:bg-gray-100"
             />
           </div>
@@ -519,13 +530,29 @@ export function ProposalEditor({ proposal, mode, basePath }: ProposalEditorProps
                 onClick={() => handleSelectSuggestion(contact)}
                 className="w-full text-left px-3 py-2 hover:bg-gray-50 transition-colors text-sm"
               >
-                <span className="font-medium text-gray-900">{contact.name}</span>
-                {contact.email && <span className="text-gray-500 ml-2">{contact.email}</span>}
+                {contact.email && <span className="font-medium text-gray-900">{contact.email}</span>}
+                {contact.name && <span className="text-gray-500 ml-2">{contact.name}</span>}
                 {contact.company && <span className="text-gray-500 ml-2">· {contact.company}</span>}
               </button>
             ))}
           </div>
         )}
+      </div>
+
+      {/* Business address (optional) */}
+      <div>
+        <label htmlFor="business-address" className="block text-sm font-medium text-gray-700 mb-1">
+          Business address <span className="text-xs font-normal text-gray-500">(optional)</span>
+        </label>
+        <input
+          id="business-address"
+          type="text"
+          value={businessAddress}
+          onChange={(e) => setBusinessAddress(e.target.value)}
+          placeholder="e.g. 123 Main St, Suite 100, City, ST 12345"
+          disabled={!!isReadOnly}
+          className="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-inset focus:ring-slate-blue disabled:bg-gray-100"
+        />
       </div>
 
       {/* Custom sections */}

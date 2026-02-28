@@ -126,7 +126,7 @@ export async function POST(request: NextRequest) {
         business_name: business?.name || null,
         business_email: business?.email || null,
         business_phone: business?.phone || null,
-        business_address: business?.address || null,
+        business_address: body.business_address?.trim() || business?.address || null,
         business_logo_url: business?.logo_url || null,
         business_website: business?.website || null,
         show_pricing: body.show_pricing ?? true,
