@@ -33,7 +33,8 @@ export type NotificationType =
   | 'review_import_completed'
   | 'survey_response_submitted'
   | 'proposal_viewed'
-  | 'proposal_signed';
+  | 'proposal_signed'
+  | 'proposal_unsigned_reminder';
 
 export interface NotificationData {
   [key: string]: any;
@@ -463,6 +464,24 @@ export const NOTIFICATION_REGISTRY: Record<NotificationType, NotificationConfig>
       signerEmail: data.signerEmail || '',
       proposalTitle: data.proposalTitle || 'Untitled',
       signedAt: data.signedAt || new Date().toLocaleDateString('en-US', { year: 'numeric', month: 'long', day: 'numeric' }),
+      contractUrl: `${baseUrl}/agency/contracts/${data.proposalId}/preview`,
+      accountUrl: `${baseUrl}/dashboard/account`,
+      year: new Date().getFullYear(),
+    }),
+  },
+
+  'proposal_unsigned_reminder': {
+    inAppPrefField: 'in_app_proposal_activity',
+    emailPrefField: 'email_proposal_activity',
+    emailTemplate: 'proposal_unsigned_reminder',
+    getTitle: () => 'Contract awaiting signature',
+    getMessage: (data) => `${data.clientName || 'Your client'} hasn't signed ${data.proposalTitle || 'your contract'} yet (sent ${data.daysSinceSent || '3+'} days ago)`,
+    actionLabel: 'View contract',
+    getEmailVariables: (data, baseUrl) => ({
+      firstName: data.firstName || 'there',
+      clientName: data.clientName || 'Your client',
+      proposalTitle: data.proposalTitle || 'Untitled',
+      daysSinceSent: data.daysSinceSent || '3+',
       contractUrl: `${baseUrl}/agency/contracts/${data.proposalId}/preview`,
       accountUrl: `${baseUrl}/dashboard/account`,
       year: new Date().getFullYear(),

@@ -45,7 +45,19 @@ export async function GET(request: NextRequest, context: RouteContext) {
       .eq('proposal_id', id)
       .maybeSingle();
 
-    return NextResponse.json({ ...proposal, signature: signature || null });
+    // Generate signed URL for signature image if signature exists
+    let signatureWithUrl = signature || null;
+    if (signature?.signature_image_url) {
+      const { data: signedUrlData } = await supabase.storage
+        .from('proposal-signatures')
+        .createSignedUrl(signature.signature_image_url, 3600); // 1 hour expiry
+
+      if (signedUrlData?.signedUrl) {
+        signatureWithUrl = { ...signature, signed_image_url: signedUrlData.signedUrl };
+      }
+    }
+
+    return NextResponse.json({ ...proposal, signature: signatureWithUrl });
   } catch (error) {
     console.error('[PROPOSALS] GET error:', error);
     return NextResponse.json({ error: 'Internal server error' }, { status: 500 });

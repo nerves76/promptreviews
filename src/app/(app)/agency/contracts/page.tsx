@@ -62,6 +62,11 @@ export default function ContractsPage() {
   const [showNewContractModal, setShowNewContractModal] = useState(false);
   const templatesFetchedRef = useRef(false);
 
+  // Post-save success modal state
+  const [showPostSaveModal, setShowPostSaveModal] = useState(false);
+  const [postSaveData, setPostSaveData] = useState<{ id: string; token: string; title: string } | null>(null);
+  const [copySuccess, setCopySuccess] = useState('');
+
   useEffect(() => {
     async function fetchPrefix() {
       try {
@@ -72,6 +77,21 @@ export default function ContractsPage() {
       }
     }
     fetchPrefix();
+  }, []);
+
+  // Check for post-save modal trigger
+  useEffect(() => {
+    const flag = localStorage.getItem('showContractSaveModal');
+    if (flag) {
+      try {
+        const data = JSON.parse(flag);
+        setPostSaveData(data);
+        setShowPostSaveModal(true);
+      } catch {
+        // Ignore malformed data
+      }
+      localStorage.removeItem('showContractSaveModal');
+    }
   }, []);
 
   // Fetch templates when tab is active
@@ -700,6 +720,81 @@ export default function ContractsPage() {
           )}
         </Modal.Body>
       </Modal>
+
+      {/* Post-save success modal — matches Prompt Pages Prompty modal */}
+      {showPostSaveModal && postSaveData && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black bg-opacity-40">
+          <div className="bg-white/10 backdrop-blur-lg rounded-2xl shadow-2xl max-w-md w-full mx-4 relative z-50 border border-white/30">
+            <div className="flex justify-end p-4">
+              <button
+                onClick={() => {
+                  setShowPostSaveModal(false);
+                  setPostSaveData(null);
+                }}
+                className="text-white/80 hover:text-white focus:outline-none"
+                aria-label="Close modal"
+              >
+                <Icon name="FaTimes" size={18} />
+              </button>
+            </div>
+
+            <div className="px-6 pb-6">
+              <div className="text-center mb-6">
+                <div className="mb-3 flex justify-center">
+                  <img
+                    src="/images/prompty-success.png"
+                    alt="Prompty Success"
+                    className="w-24 h-24 object-contain"
+                  />
+                </div>
+                <h3 className="text-lg font-medium text-white mb-2">
+                  Contract saved!
+                </h3>
+                <p className="text-sm text-white/90">
+                  &ldquo;{postSaveData.title}&rdquo; is ready to share with your client.
+                </p>
+              </div>
+
+              <div className="space-y-3">
+                <button
+                  onClick={() => {
+                    const url = `${window.location.origin}/sow/${postSaveData.token}`;
+                    navigator.clipboard.writeText(url);
+                    setCopySuccess('Copied!');
+                    setTimeout(() => setCopySuccess(''), 2000);
+                  }}
+                  className="w-full flex items-center justify-between p-3 bg-emerald-500/30 hover:bg-emerald-500/50 backdrop-blur-sm rounded-lg border border-emerald-300/30 transition-colors cursor-pointer"
+                >
+                  <span className="text-sm font-medium text-white">Get link</span>
+                  <span className="text-white text-sm font-medium">
+                    {copySuccess || 'Copy'}
+                  </span>
+                </button>
+
+                <a
+                  href={`/sow-preview/${postSaveData.id}`}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="w-full flex items-center justify-between p-3 bg-amber-500/30 hover:bg-amber-500/50 backdrop-blur-sm rounded-lg border border-amber-300/30 transition-colors cursor-pointer"
+                >
+                  <span className="text-sm font-medium text-white">Preview contract</span>
+                  <span className="text-white text-sm font-medium">Open</span>
+                </a>
+
+                <a
+                  href={`/sow/${postSaveData.token}`}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="w-full flex items-center justify-between p-3 bg-blue-500/30 hover:bg-blue-500/50 backdrop-blur-sm rounded-lg border border-blue-300/30 transition-colors cursor-pointer"
+                >
+                  <span className="text-sm font-medium text-white">View client page</span>
+                  <span className="text-white text-sm font-medium">Open</span>
+                </a>
+              </div>
+            </div>
+          </div>
+        </div>
+      )}
 
       <ToastContainer toasts={toasts} onClose={closeToast} />
     </PageCard>

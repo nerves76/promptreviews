@@ -223,9 +223,25 @@ export function ProposalEditor({ proposal, mode, basePath, defaultIsTemplate = f
           ? { ...payload, is_template: true, template_name: title.trim() || null }
           : payload;
         const data = await apiClient.post<Proposal>('/proposals', createPayload);
-        router.push(`${basePath}/${data.id}`);
+        if (!isTemplate) {
+          // Store modal data so the contracts list shows the post-save modal
+          localStorage.setItem('showContractSaveModal', JSON.stringify({
+            id: data.id,
+            token: data.token,
+            title: data.title,
+          }));
+          router.push(basePath);
+        } else {
+          router.push(`${basePath}/${data.id}`);
+        }
       } else if (proposal) {
         await apiClient.put<Proposal>(`/proposals/${proposal.id}`, payload);
+        // Store modal data so the contracts list shows the post-save modal
+        localStorage.setItem('showContractSaveModal', JSON.stringify({
+          id: proposal.id,
+          token: proposal.token,
+          title: title.trim(),
+        }));
         router.push(basePath);
       }
     } catch (err: any) {
