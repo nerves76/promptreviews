@@ -414,8 +414,8 @@ export function ProposalEditor({ proposal, mode, basePath, defaultIsTemplate = f
         </div>
       )}
 
-      {/* Dates */}
-      <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+      {/* Dates — hidden for templates */}
+      {!defaultIsTemplate && <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
         <div>
           <label htmlFor="proposal-date" className="block text-sm font-medium text-gray-700 mb-1">
             Proposal date
@@ -442,10 +442,10 @@ export function ProposalEditor({ proposal, mode, basePath, defaultIsTemplate = f
             className="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-inset focus:ring-slate-blue disabled:bg-gray-100"
           />
         </div>
-      </div>
+      </div>}
 
-      {/* Client info */}
-      <div className="relative" ref={suggestionsRef}>
+      {/* Client info — hidden for templates */}
+      {!defaultIsTemplate && <div className="relative" ref={suggestionsRef}>
         <div className="flex items-center justify-between mb-2">
           <h3 className="text-sm font-medium text-gray-700">Client information</h3>
           {contactId && (
@@ -541,7 +541,7 @@ export function ProposalEditor({ proposal, mode, basePath, defaultIsTemplate = f
             ))}
           </div>
         )}
-      </div>
+      </div>}
 
       {/* Business address (optional) */}
       <div>
