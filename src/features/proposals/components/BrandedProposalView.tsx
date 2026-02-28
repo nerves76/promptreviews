@@ -1,10 +1,16 @@
 'use client';
 
+import { useState, useEffect, useRef, useCallback, useMemo } from 'react';
 import Image from 'next/image';
 import { applyCardTransparency } from '@/utils/colorUtils';
 import { Proposal, ProposalCustomSection, ProposalLineItem, PricingType } from '@/features/proposals/types';
 import StarRating from '@/app/(app)/dashboard/widget/components/shared/StarRating';
 import { formatSowNumber } from '@/features/proposals/sowHelpers';
+
+interface NavItem {
+  id: string;
+  label: string;
+}
 
 export interface StyleConfig {
   primaryFont: string;
@@ -107,6 +113,61 @@ export function BrandedProposalView({
     .filter(Boolean)
     .join(', ');
 
+  // --- Subway nav ---
+  const navItems = useMemo<NavItem[]>(() => {
+    if (contained) return [];
+    const items: NavItem[] = [];
+    items.push({ id: 'proposal-overview', label: 'Overview' });
+    for (let i = 0; i < sections.length; i++) {
+      const s = sections[i];
+      items.push({ id: `proposal-section-${s.id}`, label: s.title || `Section ${i + 1}` });
+    }
+    if (proposal.show_pricing && lineItems.length > 0) {
+      items.push({ id: 'proposal-pricing', label: 'Pricing' });
+    }
+    if (proposal.show_terms && proposal.terms_content) {
+      items.push({ id: 'proposal-terms', label: 'Terms' });
+    }
+    if (children) {
+      items.push({ id: 'proposal-signature', label: 'Signature' });
+    }
+    return items;
+  }, [contained, sections, proposal.show_pricing, proposal.show_terms, proposal.terms_content, lineItems.length, children]);
+
+  const showNav = navItems.length >= 2;
+
+  const [activeId, setActiveId] = useState<string>(navItems[0]?.id ?? '');
+  const observerRef = useRef<IntersectionObserver | null>(null);
+
+  useEffect(() => {
+    if (!showNav) return;
+    const ids = navItems.map((n) => n.id);
+
+    observerRef.current = new IntersectionObserver(
+      (entries) => {
+        // Find the topmost visible section
+        const visible = entries
+          .filter((e) => e.isIntersecting)
+          .sort((a, b) => a.boundingClientRect.top - b.boundingClientRect.top);
+        if (visible.length > 0) {
+          setActiveId(visible[0].target.id);
+        }
+      },
+      { rootMargin: '-20% 0px -60% 0px', threshold: 0 },
+    );
+
+    ids.forEach((id) => {
+      const el = document.getElementById(id);
+      if (el) observerRef.current!.observe(el);
+    });
+
+    return () => observerRef.current?.disconnect();
+  }, [showNav, navItems]);
+
+  const scrollTo = useCallback((id: string) => {
+    document.getElementById(id)?.scrollIntoView({ behavior: 'smooth', block: 'start' });
+  }, []);
+
   return (
     <div
       className={`${contained ? '' : 'min-h-screen'} px-4`}
@@ -115,6 +176,57 @@ export function BrandedProposalView({
         fontFamily: styleConfig.primaryFont,
       }}
     >
+      {/* Desktop subway nav — left side dots */}
+      {showNav && (
+        <nav
+          className="hidden lg:flex fixed left-6 top-1/2 -translate-y-1/2 z-50 flex-col items-center gap-0"
+          aria-label="Contract sections"
+        >
+          {navItems.map((item, idx) => {
+            const isActive = activeId === item.id;
+            return (
+              <div key={item.id} className="flex items-center relative group">
+                {/* Connector line above (skip for first) */}
+                {idx > 0 && (
+                  <div
+                    className="absolute left-1/2 -translate-x-1/2 w-px"
+                    style={{
+                      top: '-12px',
+                      height: '12px',
+                      backgroundColor: `${color}30`,
+                    }}
+                  />
+                )}
+                {/* Dot */}
+                <button
+                  onClick={() => scrollTo(item.id)}
+                  className="relative z-10 rounded-full transition-all duration-200 my-3"
+                  style={{
+                    width: isActive ? '12px' : '8px',
+                    height: isActive ? '12px' : '8px',
+                    backgroundColor: isActive ? styleConfig.primaryColor : `${color}4D`,
+                    boxShadow: isActive ? `0 0 8px ${styleConfig.primaryColor}66` : 'none',
+                  }}
+                  aria-label={`Go to ${item.label}`}
+                  aria-current={isActive ? 'true' : undefined}
+                />
+                {/* Hover label */}
+                <span
+                  className="absolute left-full ml-3 whitespace-nowrap text-sm font-medium rounded-md px-2 py-1 opacity-0 -translate-x-2 group-hover:opacity-100 group-hover:translate-x-0 transition-all duration-200 pointer-events-none"
+                  style={{
+                    color,
+                    backgroundColor: `${cardBg}`,
+                    border: cardBorder,
+                  }}
+                >
+                  {item.label}
+                </span>
+              </div>
+            );
+          })}
+        </nav>
+      )}
+
       <div className="max-w-[900px] w-full mx-auto" id="proposal-preview-content">
         {/* Business info card */}
         <div
@@ -190,8 +302,38 @@ export function BrandedProposalView({
           </div>
         </div>
 
+        {/* Mobile subway nav — horizontal sticky pills */}
+        {showNav && (
+          <nav
+            className="lg:hidden sticky top-0 z-40 -mx-4 px-4 py-3 mt-6 overflow-x-auto scrollbar-hide"
+            style={{ background: getBackground(styleConfig) }}
+            aria-label="Contract sections"
+          >
+            <div className="flex gap-2 w-max">
+              {navItems.map((item) => {
+                const isActive = activeId === item.id;
+                return (
+                  <button
+                    key={item.id}
+                    onClick={() => scrollTo(item.id)}
+                    className="whitespace-nowrap rounded-full px-3 py-1.5 text-xs font-medium transition-all duration-200"
+                    style={{
+                      backgroundColor: isActive ? styleConfig.primaryColor : `${cardBg}`,
+                      color: isActive ? '#ffffff' : color,
+                      border: isActive ? 'none' : cardBorder,
+                    }}
+                    aria-current={isActive ? 'true' : undefined}
+                  >
+                    {item.label}
+                  </button>
+                );
+              })}
+            </div>
+          </nav>
+        )}
+
         {/* Title, dates, and client info card */}
-        <div className={`${cardClasses} mt-8`} style={cardStyle}>
+        <div id="proposal-overview" className={`${cardClasses} mt-8 scroll-mt-16`} style={cardStyle}>
           <h2 className="text-2xl font-bold" style={{ color }}>{proposal.title}</h2>
           <div className="flex flex-wrap gap-x-6 gap-y-1 mt-2 text-sm" style={{ color: mutedColor }}>
             {proposal.show_sow_number && proposal.sow_number != null && sowPrefix && (
@@ -221,7 +363,7 @@ export function BrandedProposalView({
 
         {/* Each custom section in its own card */}
         {sections.map((section) => (
-          <div key={section.id} className={`${cardClasses} mt-6`} style={cardStyle}>
+          <div key={section.id} id={`proposal-section-${section.id}`} className={`${cardClasses} mt-6 scroll-mt-16`} style={cardStyle}>
             {section.title && (
               <h3 className="text-lg font-semibold" style={{ color }}>{section.title}</h3>
             )}
@@ -292,7 +434,7 @@ export function BrandedProposalView({
 
         {/* Pricing card */}
         {proposal.show_pricing && lineItems.length > 0 && (
-          <div className={`${cardClasses} mt-6`} style={cardStyle}>
+          <div id="proposal-pricing" className={`${cardClasses} mt-6 scroll-mt-16`} style={cardStyle}>
             <h3 className="text-lg font-semibold mb-3" style={{ color }}>Pricing</h3>
             <div className="overflow-x-auto">
               <table className="min-w-full text-sm">
@@ -333,7 +475,7 @@ export function BrandedProposalView({
 
         {/* Terms card */}
         {proposal.show_terms && proposal.terms_content && (
-          <div className={`${cardClasses} mt-6`} style={cardStyle}>
+          <div id="proposal-terms" className={`${cardClasses} mt-6 scroll-mt-16`} style={cardStyle}>
             <h3 className="text-lg font-semibold mb-2" style={{ color }}>Terms & conditions</h3>
             <div className="text-sm whitespace-pre-wrap leading-relaxed" style={{ color: mutedColor }}>
               {proposal.terms_content}
@@ -343,7 +485,7 @@ export function BrandedProposalView({
 
         {/* Children (signature section etc.) rendered as a separate card */}
         {children && (
-          <div className={`${cardClasses} mt-6 mb-8`} style={cardStyle}>
+          <div id="proposal-signature" className={`${cardClasses} mt-6 mb-8 scroll-mt-16`} style={cardStyle}>
             {children}
           </div>
         )}
