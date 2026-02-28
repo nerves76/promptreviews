@@ -203,8 +203,8 @@ export default function EditTablePage({ params }: { params: Promise<{ slug: stri
   };
 
   const copyEmbedCode = () => {
-    const code = `<div id="promptreviews-comparison" data-comparison-id="${slug}"></div>
-<script src="https://app.promptreviews.app/widgets/comparison/widget-embed.min.js" async></script>`;
+    const code = `<iframe src="https://app.promptreviews.app/embed/comparison/${slug}" style="width:100%;border:none;min-height:600px;" loading="lazy"></iframe>
+<script>window.addEventListener("message",function(e){if(e.data&&e.data.type==="comparison-embed-resize"){document.querySelector('iframe[src*="/embed/comparison/${slug}"]').style.height=e.data.height+"px"}});</script>`;
     navigator.clipboard.writeText(code);
     setCopiedEmbed(true);
     setTimeout(() => setCopiedEmbed(false), 2000);
@@ -456,8 +456,8 @@ export default function EditTablePage({ params }: { params: Promise<{ slug: stri
               <h3 className="text-lg font-semibold text-gray-900">Embed code</h3>
               <div className="bg-gray-900 rounded-lg p-4">
                 <pre className="text-sm text-gray-300 overflow-x-auto">
-                  {`<div id="promptreviews-comparison" data-comparison-id="${slug}"></div>
-<script src="https://app.promptreviews.app/widgets/comparison/widget-embed.min.js" async></script>`}
+                  {`<iframe src="https://app.promptreviews.app/embed/comparison/${slug}" style="width:100%;border:none;min-height:600px;" loading="lazy"></iframe>
+<script>window.addEventListener("message",function(e){if(e.data&&e.data.type==="comparison-embed-resize"){document.querySelector('iframe[src*="/embed/comparison/${slug}"]').style.height=e.data.height+"px"}});</script>`}
                 </pre>
               </div>
               <Button variant="outline" onClick={copyEmbedCode}>
