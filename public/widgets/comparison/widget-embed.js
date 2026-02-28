@@ -110,6 +110,7 @@
       width: 32px;
       height: 32px;
       object-fit: contain;
+      filter: brightness(0) invert(1);
     }
 
     .pr-comparison-logo-placeholder {

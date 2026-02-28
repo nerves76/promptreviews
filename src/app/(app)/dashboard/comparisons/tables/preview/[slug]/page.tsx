@@ -288,7 +288,7 @@ export default function PreviewTablePage({ params }: { params: Promise<{ slug: s
                                   <img
                                     src={comp.logo_url}
                                     alt={comp.name}
-                                    className="w-8 h-8 object-contain"
+                                    className="w-8 h-8 object-contain brightness-0 invert"
                                     onError={(e) => {
                                       e.currentTarget.style.display = 'none';
                                       const parent = e.currentTarget.parentElement;
