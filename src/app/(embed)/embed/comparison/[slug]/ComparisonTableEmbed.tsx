@@ -487,7 +487,6 @@ const EMBED_STYLES = `
     border-radius: 24px;
     border: 1px solid rgba(255, 255, 255, 0.3);
     box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.15);
-    background: linear-gradient(135deg, #527DE7 0%, #7B6BA8 50%, #E8A87C 100%);
   }
 
   .pr-table-wrapper {
