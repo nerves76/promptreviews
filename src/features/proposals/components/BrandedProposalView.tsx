@@ -25,6 +25,8 @@ export interface StyleConfig {
   inputTextColor: string;
   logoUrl: string | null;
   businessName: string | null;
+  addressCity?: string | null;
+  addressState?: string | null;
 }
 
 function getCardBorderStyle(config: StyleConfig) {
@@ -90,6 +92,10 @@ export function BrandedProposalView({
 
   const grandTotal = lineItems.reduce((sum, item) => sum + item.quantity * item.unit_price, 0);
 
+  const addressDisplay = [styleConfig.addressCity, styleConfig.addressState]
+    .filter(Boolean)
+    .join(', ');
+
   return (
     <div
       className={`${contained ? '' : 'min-h-screen'} px-4`}
@@ -147,7 +153,7 @@ export function BrandedProposalView({
             </div>
           </div>
 
-          {/* Business name */}
+          {/* Business name and address */}
           <div className="mt-24 text-center">
             <h1
               className="text-3xl font-bold mb-1"
@@ -155,6 +161,11 @@ export function BrandedProposalView({
             >
               {styleConfig.businessName || 'Proposal'}
             </h1>
+            {addressDisplay && (
+              <p className="text-base font-medium" style={{ color }}>
+                {addressDisplay}
+              </p>
+            )}
             {proposal.business_email && (
               <p className="text-sm opacity-70" style={{ color }}>
                 {proposal.business_email}
@@ -169,7 +180,7 @@ export function BrandedProposalView({
         </div>
 
         {/* Title, dates, and client info card */}
-        <div className={`${cardClasses} mt-6`} style={cardStyle}>
+        <div className={`${cardClasses} mt-8`} style={cardStyle}>
           <h2 className="text-2xl font-bold" style={{ color }}>{proposal.title}</h2>
           <div className="flex flex-wrap gap-x-6 gap-y-1 mt-2 text-sm" style={{ color: mutedColor }}>
             {proposal.show_sow_number && proposal.sow_number != null && sowPrefix && (
@@ -199,7 +210,7 @@ export function BrandedProposalView({
 
         {/* Each custom section in its own card */}
         {sections.map((section) => (
-          <div key={section.id} className={`${cardClasses} mt-4`} style={cardStyle}>
+          <div key={section.id} className={`${cardClasses} mt-6`} style={cardStyle}>
             {section.title && (
               <h3 className="text-lg font-semibold" style={{ color }}>{section.title}</h3>
             )}
@@ -217,7 +228,7 @@ export function BrandedProposalView({
 
         {/* Pricing card */}
         {proposal.show_pricing && lineItems.length > 0 && (
-          <div className={`${cardClasses} mt-4`} style={cardStyle}>
+          <div className={`${cardClasses} mt-6`} style={cardStyle}>
             <h3 className="text-lg font-semibold mb-3" style={{ color }}>Pricing</h3>
             <div className="overflow-x-auto">
               <table className="min-w-full text-sm">
@@ -258,7 +269,7 @@ export function BrandedProposalView({
 
         {/* Terms card */}
         {proposal.show_terms && proposal.terms_content && (
-          <div className={`${cardClasses} mt-4`} style={cardStyle}>
+          <div className={`${cardClasses} mt-6`} style={cardStyle}>
             <h3 className="text-lg font-semibold mb-2" style={{ color }}>Terms & conditions</h3>
             <div className="text-sm whitespace-pre-wrap leading-relaxed" style={{ color: mutedColor }}>
               {proposal.terms_content}
@@ -268,13 +279,13 @@ export function BrandedProposalView({
 
         {/* Children (signature section etc.) rendered as a separate card */}
         {children && (
-          <div className={`${cardClasses} mt-4 mb-8`} style={cardStyle}>
+          <div className={`${cardClasses} mt-6 mb-8`} style={cardStyle}>
             {children}
           </div>
         )}
 
         {/* Footer */}
-        <div className={`text-center ${children ? '' : 'mt-4'} pb-8`}>
+        <div className={`text-center ${children ? '' : 'mt-6'} pb-8`}>
           <p className="text-sm opacity-50" style={{ color }}>
             Powered by <a href="https://promptreviews.app" className="underline hover:opacity-80" target="_blank" rel="noopener noreferrer">Prompt Reviews</a>
           </p>

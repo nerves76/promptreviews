@@ -2,7 +2,6 @@
 
 import { use, useState, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
-import { Button } from '@/app/(app)/components/ui/button';
 import Icon from '@/components/Icon';
 import { useProposal } from '@/features/proposals/hooks/useProposal';
 import { PROPOSAL_STATUS_LABELS } from '@/features/proposals/types';
@@ -53,8 +52,12 @@ function buildStyleConfig(business: any): StyleConfig {
     inputTextColor: business?.input_text_color || GLASSY_DEFAULTS.input_text_color,
     logoUrl: business?.logo_url || null,
     businessName: business?.name || null,
+    addressCity: business?.address_city || null,
+    addressState: business?.address_state || null,
   };
 }
+
+const btnClass = 'flex items-center gap-2 px-4 py-2 rounded-lg shadow-md hover:bg-gray-50 transition-colors w-full bg-white border border-gray-200 text-gray-700';
 
 export default function ContractPreviewPage({ params }: { params: Promise<{ id: string }> }) {
   const { id } = use(params);
@@ -134,10 +137,10 @@ export default function ContractPreviewPage({ params }: { params: Promise<{ id: 
       <div className="min-h-screen flex items-center justify-center bg-gray-100">
         <div className="text-center">
           <p className="text-red-600 mb-4">{error || 'Contract not found'}</p>
-          <Button variant="secondary" onClick={() => router.push('/agency/contracts')}>
-            <Icon name="FaArrowLeft" size={14} className="mr-2" />
-            Back to contracts
-          </Button>
+          <button onClick={() => router.push('/agency/contracts')} className={btnClass}>
+            <Icon name="FaArrowLeft" size={16} />
+            <span>Back</span>
+          </button>
         </div>
       </div>
     );
@@ -146,62 +149,69 @@ export default function ContractPreviewPage({ params }: { params: Promise<{ id: 
   const styleConfig = buildStyleConfig(business);
 
   return (
-    <div className="relative">
-      {/* Floating action bar */}
-      <div className="sticky top-0 z-50 bg-white/90 backdrop-blur-md border-b border-gray-200 shadow-sm">
-        <div className="max-w-[900px] mx-auto px-4 py-3 flex items-center justify-between gap-4">
-          <div className="flex items-center gap-3 min-w-0">
+    <>
+      {/* Floating admin buttons — matches prompt page pattern */}
+      <div className="fixed left-4 top-4 z-[60]">
+        <div className="bg-black bg-opacity-20 backdrop-blur-sm rounded-xl p-3 space-y-2">
+          <button
+            onClick={() => router.push(`/agency/contracts/${proposal.id}`)}
+            className={btnClass}
+            title="Edit this contract"
+          >
+            <Icon name="FaEdit" size={16} />
+            <span className="hidden sm:inline">Edit</span>
+          </button>
+          <button
+            onClick={handleDownloadPdf}
+            className={btnClass}
+            title="Download as PDF"
+          >
+            <Icon name="FaFileAlt" size={16} />
+            <span className="hidden sm:inline">PDF</span>
+          </button>
+          {['draft', 'sent', 'viewed', 'on_hold'].includes(proposal.status) && (
             <button
-              onClick={() => router.push('/agency/contracts')}
-              className="text-gray-500 hover:text-gray-700 flex-shrink-0"
-              aria-label="Back to contracts"
+              onClick={handleSend}
+              disabled={sending}
+              className={btnClass}
+              title="Send to client"
             >
-              <Icon name="FaArrowLeft" size={16} />
+              {sending ? (
+                <Icon name="FaSpinner" size={16} className="animate-spin" />
+              ) : (
+                <Icon name="FaEnvelope" size={16} />
+              )}
+              <span className="hidden sm:inline">{sending ? 'Sending...' : 'Send'}</span>
             </button>
-            <div className="min-w-0">
-              <p className="text-sm font-medium text-gray-900 truncate">{proposal.title}</p>
-              <p className="text-xs text-gray-500">
-                {PROPOSAL_STATUS_LABELS[proposal.status] || proposal.status}
-                {(proposal.client_first_name || proposal.client_last_name) && (
-                  <> &mdash; {[proposal.client_first_name, proposal.client_last_name].filter(Boolean).join(' ')}</>
-                )}
-              </p>
-            </div>
-          </div>
-
-          <div className="flex items-center gap-2 flex-shrink-0">
-            {sendError && (
-              <span className="text-xs text-red-600 hidden sm:inline">{sendError}</span>
-            )}
-            {sendSuccess && (
-              <span className="text-xs text-green-600 hidden sm:inline">Sent!</span>
-            )}
-            <Button variant="secondary" size="sm" onClick={() => router.push(`/agency/contracts/${proposal.id}`)} className="whitespace-nowrap">
-              <Icon name="FaEdit" size={12} className="mr-1.5" />
-              Edit
-            </Button>
-            <Button variant="secondary" size="sm" onClick={handleDownloadPdf} className="whitespace-nowrap">
-              <Icon name="FaFileAlt" size={12} className="mr-1.5" />
-              PDF
-            </Button>
-            {['draft', 'sent', 'viewed', 'on_hold'].includes(proposal.status) && (
-              <Button size="sm" onClick={handleSend} disabled={sending} className="whitespace-nowrap">
-                {sending ? (
-                  <>
-                    <Icon name="FaSpinner" size={12} className="animate-spin mr-1.5" />
-                    Sending...
-                  </>
-                ) : (
-                  <>
-                    <Icon name="FaEnvelope" size={12} className="mr-1.5" />
-                    Send
-                  </>
-                )}
-              </Button>
-            )}
-          </div>
+          )}
+          <button
+            onClick={() => router.push('/agency/contracts')}
+            className={btnClass}
+            title="Back to contracts"
+          >
+            <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M10 19l-7-7m0 0l7-7m-7 7h18" />
+            </svg>
+            <span className="hidden sm:inline">Back</span>
+          </button>
         </div>
       </div>
+
+      {/* Status/error toasts — fixed top-right */}
+      {(sendError || sendSuccess) && (
+        <div className="fixed right-4 top-4 z-[60]">
+          {sendError && (
+            <div className="bg-red-50 border border-red-200 rounded-lg px-4 py-2 text-sm text-red-700 shadow-md">
+              {sendError}
+            </div>
+          )}
+          {sendSuccess && (
+            <div className="bg-green-50 border border-green-200 rounded-lg px-4 py-2 text-sm text-green-700 shadow-md">
+              Sent to {proposal.client_email}!
+            </div>
+          )}
+        </div>
+      )}
 
       {/* Full branded preview — exactly what the client sees */}
       <BrandedProposalView
@@ -211,7 +221,7 @@ export default function ContractPreviewPage({ params }: { params: Promise<{ id: 
       >
         {/* Signature display if signed */}
         {proposal.signature && (
-          <div className="mt-8 pt-6 border-t" style={{ borderColor: `${styleConfig.cardText}22` }}>
+          <>
             <div className="flex items-center gap-2 mb-2">
               <Icon name="FaCheckCircle" size={20} className="text-green-500" />
               <span className="text-lg font-semibold" style={{ color: styleConfig.cardText }}>
@@ -250,9 +260,9 @@ export default function ContractPreviewPage({ params }: { params: Promise<{ id: 
                 )}
               </div>
             )}
-          </div>
+          </>
         )}
       </BrandedProposalView>
-    </div>
+    </>
   );
 }

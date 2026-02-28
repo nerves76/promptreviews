@@ -166,6 +166,8 @@ export default async function ProposalPage({ params }: { params: Promise<{ token
     inputTextColor: businessProfile?.input_text_color || GLASSY_DEFAULTS.input_text_color,
     logoUrl: businessProfile?.logo_url || null,
     businessName: businessProfile?.name || proposal.business_name || null,
+    addressCity: businessProfile?.address_city || null,
+    addressState: businessProfile?.address_state || null,
   };
 
   return (

@@ -20,6 +20,8 @@ export default function AppMain({
   const isPublic =
     pathname.startsWith("/r/") ||
     pathname.startsWith("/s/") ||
+    pathname.startsWith("/sow/") ||
+    pathname.startsWith("/sow-preview/") ||
     (pathname.startsWith("/prompt-pages/") && !pathname.startsWith("/prompt-pages/outreach-templates")) ||
     pathname.startsWith("/demo/") ||
     pathname.startsWith("/embed/") ||
