@@ -94,8 +94,8 @@ export default function TablesPage() {
   };
 
   const copyEmbedCode = (slug: string) => {
-    const code = `<div id="promptreviews-comparison" data-comparison-id="${slug}"></div>
-<script src="https://app.promptreviews.app/widgets/comparison/widget-embed.min.js" async></script>`;
+    const code = `<iframe src="https://app.promptreviews.app/embed/comparison/${slug}" style="width:100%;border:none;min-height:600px;" loading="lazy"></iframe>
+<script>window.addEventListener("message",function(e){if(e.data&&e.data.type==="comparison-embed-resize"){document.querySelector('iframe[src*="/embed/comparison/${slug}"]').style.height=e.data.height+"px"}});</script>`;
     navigator.clipboard.writeText(code);
     setCopiedSlug(slug);
     setTimeout(() => setCopiedSlug(null), 2000);
