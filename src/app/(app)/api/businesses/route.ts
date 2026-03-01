@@ -117,6 +117,42 @@ export async function PUT(request: NextRequest) {
       );
     }
 
+    // Validate business_values if provided
+    if (fieldsToUpdate.business_values !== undefined) {
+      if (!Array.isArray(fieldsToUpdate.business_values)) {
+        return NextResponse.json(
+          { error: "business_values must be an array" },
+          { status: 400 }
+        );
+      }
+      if (fieldsToUpdate.business_values.length > 12) {
+        return NextResponse.json(
+          { error: "Maximum of 12 business values allowed" },
+          { status: 400 }
+        );
+      }
+      for (const val of fieldsToUpdate.business_values) {
+        if (typeof val.name !== 'string' || typeof val.description !== 'string') {
+          return NextResponse.json(
+            { error: "Each business value must have name and description strings" },
+            { status: 400 }
+          );
+        }
+        if (val.name.length > 100) {
+          return NextResponse.json(
+            { error: "Business value name must be 100 characters or fewer" },
+            { status: 400 }
+          );
+        }
+        if (val.description.length > 500) {
+          return NextResponse.json(
+            { error: "Business value description must be 500 characters or fewer" },
+            { status: 400 }
+          );
+        }
+      }
+    }
+
     // Validate string lengths for key text fields
     const lengthErrors = collectErrors(
       validateStringLength(fieldsToUpdate.name, 'name', STRING_LIMITS.name),

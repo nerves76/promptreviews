@@ -35,6 +35,7 @@ interface ImportedBusinessInfo {
   twitter_url?: string;
   is_location_based?: boolean;
   location_aliases?: string[];
+  business_values?: Array<{ name: string; description: string }>;
 }
 
 // Validate URL format
@@ -125,7 +126,7 @@ function extractSocialLinks($: cheerio.CheerioAPI): Pick<ImportedBusinessInfo, S
 }
 
 // Extract text content from page
-function extractPageContent($: cheerio.CheerioAPI): {
+function extractPageContent($: cheerio.CheerioAPI, maxContentLength = 4000): {
   title: string;
   metaDescription: string;
   headings: string[];
@@ -166,9 +167,74 @@ function extractPageContent($: cheerio.CheerioAPI): {
   mainContent = mainContent
     .replace(/\s+/g, " ")
     .trim()
-    .slice(0, 5000);
+    .slice(0, maxContentLength);
 
   return { title, metaDescription, headings, mainContent };
+}
+
+// Patterns that indicate an about page
+const ABOUT_PAGE_PATTERNS = [
+  /^\/about\/?$/i,
+  /^\/about-us\/?$/i,
+  /^\/our-story\/?$/i,
+  /^\/our-values\/?$/i,
+  /^\/who-we-are\/?$/i,
+  /^\/our-team\/?$/i,
+  /^\/our-mission\/?$/i,
+  /^\/company\/?$/i,
+];
+
+// Discover about page URL from homepage links
+function discoverAboutPageUrl($: cheerio.CheerioAPI, baseUrl: string): string | null {
+  let aboutUrl: string | null = null;
+
+  $("a[href]").each((_, el) => {
+    if (aboutUrl) return; // already found one
+    const href = $(el).attr("href");
+    if (!href) return;
+
+    try {
+      const resolved = new URL(href, baseUrl);
+      // Only consider same-origin links
+      const base = new URL(baseUrl);
+      if (resolved.origin !== base.origin) return;
+
+      const pathname = resolved.pathname;
+      for (const pattern of ABOUT_PAGE_PATTERNS) {
+        if (pattern.test(pathname)) {
+          aboutUrl = resolved.href;
+          return false; // break .each()
+        }
+      }
+    } catch {
+      // Invalid URL, skip
+    }
+  });
+
+  return aboutUrl;
+}
+
+// Fetch a page with a given timeout, returns HTML or null on failure
+async function fetchPageSafe(url: string, timeoutMs: number): Promise<string | null> {
+  try {
+    const controller = new AbortController();
+    const timeoutId = setTimeout(() => controller.abort(), timeoutMs);
+
+    const response = await fetch(url, {
+      headers: {
+        "User-Agent": "PromptReviews Bot/1.0 (https://promptreviews.app; business profile import)",
+        "Accept": "text/html,application/xhtml+xml,application/xml;q=0.9,*/*;q=0.8",
+      },
+      signal: controller.signal,
+    });
+
+    clearTimeout(timeoutId);
+
+    if (!response.ok) return null;
+    return await response.text();
+  } catch {
+    return null;
+  }
 }
 
 export async function POST(request: NextRequest) {
@@ -257,6 +323,47 @@ export async function POST(request: NextRequest) {
       );
     }
 
+    // --- About page discovery and fetch ---
+    let aboutPageContent = "";
+    // Re-load the original HTML to scan links (extractPageContent mutates the DOM)
+    const $links = cheerio.load(html);
+    let aboutUrl = discoverAboutPageUrl($links, url);
+
+    // If no about link found in HTML, try common fallback paths
+    if (!aboutUrl) {
+      const origin = new URL(url).origin;
+      const fallbackPaths = ["/about", "/about-us"];
+      for (const path of fallbackPaths) {
+        const candidateHtml = await fetchPageSafe(`${origin}${path}`, 5000);
+        if (candidateHtml) {
+          aboutUrl = `${origin}${path}`;
+          const $about = cheerio.load(candidateHtml);
+          const aboutExtracted = extractPageContent($about);
+          aboutPageContent = aboutExtracted.mainContent;
+          console.log(`[scrape-business-info] Found about page via fallback: ${aboutUrl}`);
+          break;
+        }
+      }
+    } else {
+      // We found a link — fetch it
+      const aboutHtml = await fetchPageSafe(aboutUrl, 5000);
+      if (aboutHtml) {
+        const $about = cheerio.load(aboutHtml);
+        const aboutExtracted = extractPageContent($about);
+        aboutPageContent = aboutExtracted.mainContent;
+        console.log(`[scrape-business-info] Found about page via link: ${aboutUrl}`);
+      }
+    }
+
+    if (!aboutPageContent) {
+      console.log("[scrape-business-info] No about page found, proceeding with homepage only");
+    }
+
+    // Build content sections for the prompt
+    const contentSection = aboutPageContent
+      ? `Homepage Content: ${mainContent}\n\nAbout Page Content: ${aboutPageContent}`
+      : `Page Content: ${mainContent}`;
+
     // Build prompt for OpenAI
     const prompt = `You are helping a business set up their profile on a review management platform. Extract business information from this website to help them get started quickly.
 
@@ -274,11 +381,12 @@ Return a JSON object with these fields (only include fields where you can confid
 - years_in_business: How long the business has been operating (as a NUMBER ONLY). Look for phrases like "Since 1985", "Established 1999", "Over 20 years of experience", "Founded in 2010". Calculate the number of years and return ONLY the number, e.g. "25" or "20". Do not include words like "years" or "over".
 - is_location_based: Boolean (true/false). Set to true if the business serves a specific geographic area (look for "serving [area]", "based in [city]", service area mentions, local phone numbers, addresses, "proudly serving", etc.). Set to false for online-only businesses, national e-commerce, or businesses with no geographic focus.
 - location_aliases: An array of location names, nicknames, and abbreviations. Include the city name, state, common abbreviations, regional names, and well-known nicknames - even if not explicitly on the website. Use your knowledge of what locals call the area. Examples: Portland OR should include ["Pacific Northwest", "Oregon", "Portland", "PDX", "Rose City"]. Los Angeles should include ["Southern California", "California", "Los Angeles", "LA", "SoCal", "City of Angels"]. Only include if is_location_based is true.
+- business_values: An array of the company's core values. Each value is an object with "name" (the value name, e.g. "Integrity", "Innovation") and "description" (1-2 sentence explanation of what this value means to the business). Extract only values that are clearly stated on the site. Max 6 values.
 
 Website Title: ${title}
 Meta Description: ${metaDescription}
 Headings: ${headings.join(", ")}
-Page Content: ${mainContent}
+${contentSection}
 
 Return ONLY valid JSON, no markdown or explanation.`;
 
@@ -294,7 +402,7 @@ Return ONLY valid JSON, no markdown or explanation.`;
       ],
       temperature: 0.3,
       response_format: { type: "json_object" },
-      max_tokens: 1500,
+      max_tokens: 2000,
     });
 
     const aiResponse = completion.choices[0].message.content || "{}";

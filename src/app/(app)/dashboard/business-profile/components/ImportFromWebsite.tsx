@@ -32,6 +32,7 @@ interface ImportedBusinessInfo {
   twitter_url?: string;
   is_location_based?: boolean;
   location_aliases?: string[];
+  business_values?: Array<{ name: string; description: string }>;
 }
 
 interface ImportFromWebsiteProps {

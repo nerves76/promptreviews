@@ -204,6 +204,19 @@ export default function BusinessProfilePage() {
     return [""];
   });
 
+  // Restore values from localStorage
+  const [values, setValues] = useState<Array<{ name: string; description: string }>>(() => {
+    if (typeof window !== 'undefined') {
+      const saved = localStorage.getItem('businessProfileValues');
+      if (saved) {
+        try {
+          return JSON.parse(saved);
+        } catch (e) {}
+      }
+    }
+    return [];
+  });
+
   const [logoUrl, setLogoUrl] = useState<string | null>(null);
   const [logoFile, setLogoFile] = useState<File | null>(null);
   const [logoPrintFile, setLogoPrintFile] = useState<File | null>(null);
@@ -261,6 +274,7 @@ export default function BusinessProfilePage() {
     twitter_url?: string;
     is_location_based?: boolean;
     location_aliases?: string[];
+    business_values?: Array<{ name: string; description: string }>;
   }, websiteUrl: string) => {
     // Only fill empty fields - don't overwrite existing data
     const updates: Record<string, string> = {};
@@ -326,12 +340,21 @@ export default function BusinessProfilePage() {
       }
     }
 
+    // Handle business values - only set if current values are empty
+    if (data.business_values && data.business_values.length > 0) {
+      const currentValuesEmpty = values.length === 0;
+      if (currentValuesEmpty) {
+        setValues(data.business_values);
+      }
+    }
+
     // Show success message
     const fieldCount = Object.keys(updates).length
       + (data.services_offered?.length ? 1 : 0)
       + (data.differentiators?.length ? 1 : 0)
       + (data.is_location_based === false ? 1 : 0)
-      + (data.location_aliases?.length ? 1 : 0);
+      + (data.location_aliases?.length ? 1 : 0)
+      + (data.business_values?.length ? 1 : 0);
     if (fieldCount > 0) {
       setSuccess(`Imported ${fieldCount} field${fieldCount > 1 ? 's' : ''} from your website. Review and edit as needed.`);
       setTimeout(() => setSuccess(""), 5000);
@@ -356,9 +379,20 @@ export default function BusinessProfilePage() {
         localStorage.setItem('businessProfileServices', JSON.stringify(services));
       }
     }, 1000);
-    
+
     return () => clearTimeout(saveTimeout);
   }, [services]);
+
+  // Also save values separately
+  useEffect(() => {
+    const saveTimeout = setTimeout(() => {
+      if (typeof window !== 'undefined') {
+        localStorage.setItem('businessProfileValues', JSON.stringify(values));
+      }
+    }, 1000);
+
+    return () => clearTimeout(saveTimeout);
+  }, [values]);
 
   useEffect(() => {
     const loadBusinessProfile = async () => {
@@ -481,6 +515,7 @@ export default function BusinessProfilePage() {
             location_aliases: [],
           });
           setServices([""]);
+          setValues([]);
           setLogoUrl(null);
           setNoProfile(true);
         } else if (businessData) {
@@ -550,6 +585,12 @@ export default function BusinessProfilePage() {
                   : businessData.differentiators.split("\n").filter((d: string) => d.trim())
                 : [""],
           );
+          // Parse business_values from DB
+          setValues(
+            Array.isArray(businessData.business_values)
+              ? businessData.business_values
+              : [],
+          );
           setLogoUrl(businessData.logo_url || null);
           setBusinessId(businessData.id); // Store business ID for updates
           setNoProfile(false);
@@ -611,6 +652,24 @@ export default function BusinessProfilePage() {
 
   const removeDifferentiator = (idx: number) =>
     setDifferentiators(differentiators.filter((_, i) => i !== idx));
+
+  // Value handlers
+  const handleValueNameChange = (idx: number, value: string) => {
+    const newValues = [...values];
+    newValues[idx] = { ...newValues[idx], name: value };
+    setValues(newValues);
+  };
+
+  const handleValueDescriptionChange = (idx: number, value: string) => {
+    const newValues = [...values];
+    newValues[idx] = { ...newValues[idx], description: value };
+    setValues(newValues);
+  };
+
+  const addValue = () => setValues([...values, { name: "", description: "" }]);
+
+  const removeValue = (idx: number) =>
+    setValues(values.filter((_, i) => i !== idx));
 
   // Helper to get cropped image as a blob
   const getCroppedImg = async (imageSrc: string, cropPixels: any) => {
@@ -866,6 +925,17 @@ export default function BusinessProfilePage() {
         .filter(d => d && d.length > 0)
         .join("\n");
 
+      // Filter out empty values before saving
+      const filteredValues = values.filter(
+        (v) => v.name.trim() || v.description.trim()
+      );
+
+      // Auto-generate company_values text from structured values for AI prompts
+      const generatedCompanyValues = filteredValues
+        .filter((v) => v.name.trim())
+        .map((v) => v.description.trim() ? `${v.name.trim()}: ${v.description.trim()}` : v.name.trim())
+        .join("\n");
+
       // Convert keywords from comma-separated string to array for database (text[] column)
       // Keywords can come from website import but is no longer a direct user input
       const keywordsArray = typeof form.keywords === 'string' && form.keywords.trim()
@@ -875,7 +945,8 @@ export default function BusinessProfilePage() {
       // Build the update payload
       const updatePayload = {
         name: form.name,
-        company_values: form.company_values,
+        company_values: generatedCompanyValues || form.company_values,
+        business_values: filteredValues,
         differentiators: filteredDifferentiators,
         years_in_business: form.years_in_business,
         industries_served: form.industries_served,
@@ -1022,6 +1093,7 @@ export default function BusinessProfilePage() {
         localStorage.removeItem('businessProfilePlatforms');
         localStorage.removeItem('businessProfileServices');
         localStorage.removeItem('businessProfileDifferentiators');
+        localStorage.removeItem('businessProfileValues');
         // Mark that profile has been saved (hides import from website feature) - account-specific
         if (selectedAccountId) {
           localStorage.setItem(`businessProfileSaved_${selectedAccountId}`, 'true');
@@ -1209,6 +1281,11 @@ export default function BusinessProfilePage() {
         handleCropConfirm={handleCropConfirm}
         handleCropCancel={handleCropCancel}
         formId="business-profile-form"
+        values={values}
+        handleValueNameChange={handleValueNameChange}
+        handleValueDescriptionChange={handleValueDescriptionChange}
+        addValue={addValue}
+        removeValue={removeValue}
       />
       {/* Bottom right Save button */}
       <div className="flex justify-end mt-8">

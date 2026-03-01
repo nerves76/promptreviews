@@ -87,6 +87,11 @@ interface BusinessProfileFormProps {
   handleCropConfirm: () => void;
   handleCropCancel: () => void;
   formId: string;
+  values: Array<{ name: string; description: string }>;
+  handleValueNameChange: (idx: number, value: string) => void;
+  handleValueDescriptionChange: (idx: number, value: string) => void;
+  addValue: () => void;
+  removeValue: (idx: number) => void;
 }
 
 export default function BusinessProfileForm({
@@ -132,6 +137,11 @@ export default function BusinessProfileForm({
   handleCropConfirm,
   handleCropCancel,
   formId,
+  values,
+  handleValueNameChange,
+  handleValueDescriptionChange,
+  addValue,
+  removeValue,
 }: BusinessProfileFormProps) {
   const [industryType, setIndustryType] = useState<"B2B" | "B2C" | "Both">("Both");
   const [locationAliasesInput, setLocationAliasesInput] = useState<string | null>(null);
@@ -473,6 +483,79 @@ export default function BusinessProfileForm({
             placeholder="e.g., 'Quality you can trust'"
           />
         </div>
+      </div>
+
+      {/* Company Values Section */}
+      <div className="mb-8">
+        <h2 className="mt-4 mb-8 text-2xl font-bold text-slate-blue flex items-center gap-3">
+          <Icon name="FaHeart" className="w-7 h-7 text-slate-blue" size={28} />
+          Company values
+          <RobotTooltip text="Made available for AI prompt generation." />
+        </h2>
+        {values.length === 0 ? (
+          <button
+            type="button"
+            className="inline-flex items-center px-4 py-2 border border-slate-blue text-slate-blue rounded hover:bg-slate-blue hover:text-white transition-colors font-semibold"
+            onClick={addValue}
+          >
+            + Add a value
+          </button>
+        ) : (
+          <div className="space-y-4">
+            {values.map((val, idx) => (
+              <div
+                key={idx}
+                className="border border-gray-200 rounded-lg p-4 relative"
+              >
+                <button
+                  type="button"
+                  className="absolute top-3 right-3 text-red-500 hover:text-red-700"
+                  onClick={() => removeValue(idx)}
+                  aria-label="Remove value"
+                >
+                  <Icon name="FaTrash" size={16} />
+                </button>
+                <div className="mb-3">
+                  <label className="block text-sm font-semibold text-gray-500 mb-1">
+                    Value name
+                  </label>
+                  <input
+                    type="text"
+                    className="w-full border px-3 py-2 rounded"
+                    value={val.name}
+                    onChange={(e) => handleValueNameChange(idx, e.target.value)}
+                    placeholder="e.g., Integrity"
+                    maxLength={100}
+                  />
+                </div>
+                <div>
+                  <label className="block text-sm font-semibold text-gray-500 mb-1">
+                    Description
+                  </label>
+                  <textarea
+                    className="w-full border px-3 py-2 rounded min-h-[60px]"
+                    value={val.description}
+                    onChange={(e) => handleValueDescriptionChange(idx, e.target.value)}
+                    placeholder="e.g., We always do what's right, even when no one is watching."
+                    maxLength={500}
+                    rows={2}
+                  />
+                </div>
+              </div>
+            ))}
+            <button
+              type="button"
+              className="inline-flex items-center px-4 py-2 border border-slate-blue text-slate-blue rounded hover:bg-slate-blue hover:text-white transition-colors font-semibold mt-2 disabled:opacity-50 disabled:cursor-not-allowed"
+              onClick={addValue}
+              disabled={values.length >= 12}
+            >
+              + Add a value
+            </button>
+            {values.length >= 12 && (
+              <p className="text-sm text-gray-500 mt-1">Maximum of 12 values reached.</p>
+            )}
+          </div>
+        )}
       </div>
 
       {/* Social Media Section */}
