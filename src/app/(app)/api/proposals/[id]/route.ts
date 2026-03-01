@@ -112,7 +112,7 @@ export async function PUT(request: NextRequest, context: RouteContext) {
       'show_pricing', 'pricing_type', 'show_terms', 'show_sow_number', 'terms_content',
       'custom_sections', 'line_items',
       'is_template', 'template_name', 'status',
-      'sender_signature_id',
+      'sender_signature_id', 'require_signature',
     ];
 
     for (const field of allowedFields) {

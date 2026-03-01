@@ -77,6 +77,9 @@ export function ProposalEditor({ proposal, mode, basePath, defaultIsTemplate = f
   const [showSavedTerms, setShowSavedTerms] = useState(false);
   const [showSaveTerms, setShowSaveTerms] = useState(false);
 
+  // Signature requirement state
+  const [requireSignature, setRequireSignature] = useState(proposal?.require_signature ?? true);
+
   // Sender signature state
   const [senderSignatureId, setSenderSignatureId] = useState<string | null>(proposal?.sender_signature_id || null);
   const [savedSignatures, setSavedSignatures] = useState<SavedSignature[]>([]);
@@ -132,6 +135,7 @@ export function ProposalEditor({ proposal, mode, basePath, defaultIsTemplate = f
       setCustomSections(Array.isArray(proposal.custom_sections) ? proposal.custom_sections : []);
       setLineItems(Array.isArray(proposal.line_items) ? proposal.line_items : []);
       setStatus(proposal.status || 'draft');
+      setRequireSignature(proposal.require_signature ?? true);
       setSenderSignatureId(proposal.sender_signature_id || null);
     }
   }, [proposal, mode]);
@@ -249,6 +253,7 @@ export function ProposalEditor({ proposal, mode, basePath, defaultIsTemplate = f
         custom_sections: customSections,
         line_items: lineItems,
         sender_signature_id: senderSignatureId,
+        require_signature: requireSignature,
       };
 
       if (mode === 'create') {
@@ -646,7 +651,7 @@ export function ProposalEditor({ proposal, mode, basePath, defaultIsTemplate = f
         </div>
         {showPricing && !isReadOnly && (
           <div className="mb-3">
-            <label htmlFor="pricing-type" className="block text-xs text-gray-500 mb-1">Pricing type</label>
+            <label htmlFor="pricing-type" className="block text-xs text-gray-500 mb-1">Default pricing type</label>
             <select
               id="pricing-type"
               value={pricingType}
@@ -657,10 +662,11 @@ export function ProposalEditor({ proposal, mode, basePath, defaultIsTemplate = f
                 <option key={key} value={key}>{PRICING_TYPE_LABELS[key]}</option>
               ))}
             </select>
+            <p className="text-xs text-gray-500 mt-1">New line items will default to this type. You can override per item.</p>
           </div>
         )}
         {showPricing && !isReadOnly && (
-          <ProposalLineItemsEditor lineItems={lineItems} onChange={setLineItems} pricingType={pricingType} />
+          <ProposalLineItemsEditor lineItems={lineItems} onChange={setLineItems} defaultPricingType={pricingType} />
         )}
         {showPricing && isReadOnly && lineItems.length > 0 && (
           <div className="text-sm text-gray-600">
@@ -762,6 +768,25 @@ export function ProposalEditor({ proposal, mode, basePath, defaultIsTemplate = f
               })()}
             </>
           )}
+        </div>
+      )}
+
+      {/* Require client signature toggle — hidden for templates */}
+      {!isTemplate && (
+        <div>
+          <label className="flex items-center gap-2 cursor-pointer">
+            <input
+              type="checkbox"
+              checked={requireSignature}
+              onChange={(e) => setRequireSignature(e.target.checked)}
+              disabled={!!isReadOnly}
+              className="rounded border-gray-300 text-slate-blue focus:ring-slate-blue"
+            />
+            <span className="text-sm font-medium text-gray-700">Require client signature</span>
+          </label>
+          <p className="text-xs text-gray-500 mt-1 ml-6">
+            When disabled, the client can view the contract but won&apos;t be asked to sign.
+          </p>
         </div>
       )}
 

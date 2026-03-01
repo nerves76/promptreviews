@@ -1,9 +1,9 @@
 'use client';
 
-import { useState, useEffect, useRef, useCallback, useMemo } from 'react';
+import React, { useState, useEffect, useRef, useCallback, useMemo } from 'react';
 import Image from 'next/image';
 import { applyCardTransparency, getContrastTextColor, contrastRatio } from '@/utils/colorUtils';
-import { Proposal, ProposalCustomSection, ProposalLineItem, PricingType } from '@/features/proposals/types';
+import { Proposal, ProposalCustomSection, ProposalLineItem, PricingType, PRICING_TYPE_LABELS } from '@/features/proposals/types';
 import StarRating from '@/app/(app)/dashboard/widget/components/shared/StarRating';
 import { formatSowNumber } from '@/features/proposals/sowHelpers';
 
@@ -121,14 +121,33 @@ export function BrandedProposalView({
     ? proposal.line_items
     : [];
 
+  const defaultPt: PricingType = proposal.pricing_type || 'fixed';
+  const getItemType = (item: ProposalLineItem): PricingType => item.pricing_type || defaultPt;
+
+  // Check if all items share the same type
+  const allSameType = lineItems.length > 0 && lineItems.every((item) => getItemType(item) === getItemType(lineItems[0]));
+  const uniformType = allSameType ? getItemType(lineItems[0]) : null;
+
+  // Compute totals by category
+  const oneTimeTotal = lineItems
+    .filter((item) => getItemType(item) !== 'monthly')
+    .reduce((sum, item) => sum + item.quantity * item.unit_price, 0);
+  const monthlyTotal = lineItems
+    .filter((item) => getItemType(item) === 'monthly')
+    .reduce((sum, item) => sum + item.quantity * item.unit_price, 0);
   const grandTotal = lineItems.reduce((sum, item) => sum + item.quantity * item.unit_price, 0);
-  const pt: PricingType = proposal.pricing_type || 'fixed';
-  const qtyHeader = pt === 'hourly' ? 'Hours' : 'Qty';
-  const rateHeader = pt === 'hourly' ? 'Rate' : pt === 'monthly' ? 'Monthly rate' : 'Unit price';
+  const hasMixedTypes = oneTimeTotal > 0 && monthlyTotal > 0;
+  const showTypeColumn = !allSameType;
+
+  const qtyHeader = uniformType === 'hourly' ? 'Hours' : 'Qty';
+  const rateHeader = uniformType === 'hourly' ? 'Rate' : uniformType === 'monthly' ? 'Monthly rate' : 'Unit price';
 
   const addressDisplay = [styleConfig.addressCity, styleConfig.addressState]
     .filter(Boolean)
     .join(', ');
+
+  // Check if children actually render content (filters out false/null from conditional JSX)
+  const hasChildren = React.Children.toArray(children).length > 0;
 
   // --- Subway nav ---
   const navItems = useMemo<NavItem[]>(() => {
@@ -148,11 +167,11 @@ export function BrandedProposalView({
     if (senderSignature) {
       items.push({ id: 'proposal-sender-signature', label: 'Authorized by' });
     }
-    if (children) {
+    if (hasChildren) {
       items.push({ id: 'proposal-signature', label: 'Signature' });
     }
     return items;
-  }, [contained, sections, proposal.show_pricing, proposal.show_terms, proposal.terms_content, lineItems.length, senderSignature, children]);
+  }, [contained, sections, proposal.show_pricing, proposal.show_terms, proposal.terms_content, lineItems.length, senderSignature, hasChildren]);
 
   const showNav = navItems.length >= 2;
 
@@ -491,32 +510,77 @@ export function BrandedProposalView({
                 <thead>
                   <tr style={{ borderBottom: `1px solid ${mutedColor}33` }}>
                     <th className="text-left py-2 pr-4 font-medium" style={{ color: mutedColor }}>Description</th>
-                    <th className="text-right py-2 px-4 font-medium w-20" style={{ color: mutedColor }}>{qtyHeader}</th>
-                    <th className="text-right py-2 px-4 font-medium w-28" style={{ color: mutedColor }}>{rateHeader}</th>
+                    {showTypeColumn && (
+                      <th className="text-left py-2 px-4 font-medium w-24" style={{ color: mutedColor }}>Type</th>
+                    )}
+                    <th className="text-right py-2 px-4 font-medium w-20" style={{ color: mutedColor }}>
+                      {showTypeColumn ? 'Qty/Hrs' : qtyHeader}
+                    </th>
+                    <th className="text-right py-2 px-4 font-medium w-28" style={{ color: mutedColor }}>
+                      {showTypeColumn ? 'Rate' : rateHeader}
+                    </th>
                     <th className="text-right py-2 pl-4 font-medium w-28" style={{ color: mutedColor }}>Total</th>
                   </tr>
                 </thead>
                 <tbody>
-                  {lineItems.map((item) => (
-                    <tr key={item.id} style={{ borderBottom: `1px solid ${mutedColor}1A` }}>
-                      <td className="py-2 pr-4" style={{ color }}>{item.description}</td>
-                      <td className="text-right py-2 px-4" style={{ color }}>{item.quantity}</td>
-                      <td className="text-right py-2 px-4" style={{ color }}>${item.unit_price.toFixed(2)}</td>
-                      <td className="text-right py-2 pl-4 font-medium" style={{ color }}>
-                        ${(item.quantity * item.unit_price).toFixed(2)}
-                      </td>
-                    </tr>
-                  ))}
+                  {lineItems.map((item) => {
+                    const itemType = getItemType(item);
+                    return (
+                      <tr key={item.id} style={{ borderBottom: `1px solid ${mutedColor}1A` }}>
+                        <td className="py-2 pr-4" style={{ color }}>{item.description}</td>
+                        {showTypeColumn && (
+                          <td className="py-2 px-4 text-xs" style={{ color: mutedColor }}>
+                            {PRICING_TYPE_LABELS[itemType]}
+                          </td>
+                        )}
+                        <td className="text-right py-2 px-4" style={{ color }}>{item.quantity}</td>
+                        <td className="text-right py-2 px-4" style={{ color }}>${item.unit_price.toFixed(2)}</td>
+                        <td className="text-right py-2 pl-4 font-medium" style={{ color }}>
+                          ${(item.quantity * item.unit_price).toFixed(2)}
+                          {itemType === 'monthly' && <span className="text-xs opacity-70">/mo</span>}
+                        </td>
+                      </tr>
+                    );
+                  })}
                 </tbody>
                 <tfoot>
-                  <tr style={{ borderTop: `2px solid ${mutedColor}33` }}>
-                    <td colSpan={3} className="text-right py-3 pr-4 font-semibold" style={{ color }}>
-                      Grand total{pt === 'monthly' ? ' per month' : ''}
-                    </td>
-                    <td className="text-right py-3 pl-4 font-bold text-lg" style={{ color }}>
-                      ${grandTotal.toFixed(2)}{pt === 'monthly' ? '/mo' : ''}
-                    </td>
-                  </tr>
+                  {hasMixedTypes ? (
+                    <>
+                      <tr style={{ borderTop: `2px solid ${mutedColor}33` }}>
+                        <td colSpan={showTypeColumn ? 4 : 3} className="text-right py-2 pr-4 font-semibold text-sm" style={{ color }}>
+                          One-time total
+                        </td>
+                        <td className="text-right py-2 pl-4 font-bold" style={{ color }}>
+                          ${oneTimeTotal.toFixed(2)}
+                        </td>
+                      </tr>
+                      <tr>
+                        <td colSpan={showTypeColumn ? 4 : 3} className="text-right py-2 pr-4 font-semibold text-sm" style={{ color }}>
+                          Monthly total
+                        </td>
+                        <td className="text-right py-2 pl-4 font-bold" style={{ color }}>
+                          ${monthlyTotal.toFixed(2)}/mo
+                        </td>
+                      </tr>
+                      <tr style={{ borderTop: `1px solid ${mutedColor}33` }}>
+                        <td colSpan={showTypeColumn ? 4 : 3} className="text-right py-3 pr-4 font-semibold" style={{ color }}>
+                          Grand total
+                        </td>
+                        <td className="text-right py-3 pl-4 font-bold text-lg" style={{ color }}>
+                          ${oneTimeTotal.toFixed(2)} + ${monthlyTotal.toFixed(2)}/mo
+                        </td>
+                      </tr>
+                    </>
+                  ) : (
+                    <tr style={{ borderTop: `2px solid ${mutedColor}33` }}>
+                      <td colSpan={showTypeColumn ? 4 : 3} className="text-right py-3 pr-4 font-semibold" style={{ color }}>
+                        Grand total{uniformType === 'monthly' ? ' per month' : ''}
+                      </td>
+                      <td className="text-right py-3 pl-4 font-bold text-lg" style={{ color }}>
+                        ${grandTotal.toFixed(2)}{uniformType === 'monthly' ? '/mo' : ''}
+                      </td>
+                    </tr>
+                  )}
                 </tfoot>
               </table>
             </div>
@@ -547,14 +611,14 @@ export function BrandedProposalView({
         )}
 
         {/* Children (signature section etc.) rendered as a separate card */}
-        {children && (
+        {hasChildren && (
           <div id="proposal-signature" className={`${cardClasses} mt-6 mb-8 scroll-mt-16`} style={cardStyle}>
             {children}
           </div>
         )}
 
         {/* Footer */}
-        <div className={`text-center ${children ? '' : 'mt-6'} pb-8`}>
+        <div className={`text-center ${hasChildren ? '' : 'mt-6'} pb-8`}>
           <p className="text-sm opacity-50" style={{ color }}>
             Powered by <a href="https://promptreviews.app" className="underline hover:opacity-80" target="_blank" rel="noopener noreferrer">Prompt Reviews</a>
           </p>

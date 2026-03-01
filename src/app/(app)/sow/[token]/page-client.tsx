@@ -179,7 +179,8 @@ export default function ProposalPageClient({ proposal, signature, styleConfig, t
     exportProposalToPdf('proposal-preview-content', proposal.title.replace(/\s+/g, '_'));
   };
 
-  const showSignButton = !isOwner && !signed && proposal.status !== 'expired' && proposal.status !== 'declined';
+  const requireSignature = proposal.require_signature !== false; // default true for backward compat
+  const showSignButton = !isOwner && !signed && requireSignature && proposal.status !== 'expired' && proposal.status !== 'declined';
 
   const btnClass = 'flex items-center gap-2 px-4 py-2 rounded-lg shadow-md hover:bg-gray-50 transition-colors w-full bg-white border border-gray-200 text-gray-700 whitespace-nowrap';
 
@@ -356,7 +357,15 @@ export default function ProposalPageClient({ proposal, signature, styleConfig, t
           </div>
         )}
 
-        {!isOwner && !signed && proposal.status !== 'expired' && proposal.status !== 'declined' && (
+        {/* Owner view: indicator when signature is not required */}
+        {isOwner && !requireSignature && !signature && (
+          <div className="mt-4 flex items-center gap-2 text-sm opacity-70" style={{ color: styleConfig.cardText }}>
+            <Icon name="FaInfoCircle" size={14} />
+            <span>Client signature is not required for this contract</span>
+          </div>
+        )}
+
+        {!isOwner && !signed && requireSignature && proposal.status !== 'expired' && proposal.status !== 'declined' && (
           <div className="mt-8 pt-6 border-t" style={{ borderColor: `${styleConfig.cardText}22` }}>
             <h3 className="text-lg font-semibold mb-4" style={{ color: styleConfig.cardText }}>
               Sign & accept

@@ -52,6 +52,8 @@ export interface ProposalLineItem {
   description: string;
   quantity: number;
   unit_price: number;
+  /** Per-item pricing type override. Falls back to proposal-level pricing_type when absent. */
+  pricing_type?: PricingType;
 }
 
 // --- Custom Sections ---
@@ -129,6 +131,7 @@ export interface Proposal {
   accepted_at?: string | null;
   declined_at?: string | null;
   sender_signature_id?: string | null;
+  require_signature?: boolean;
   created_at: string;
   updated_at: string;
   // Joined data
@@ -190,6 +193,7 @@ export interface CreateProposalRequest {
   line_items?: ProposalLineItem[];
   show_sow_number?: boolean;
   sender_signature_id?: string | null;
+  require_signature?: boolean;
   is_template?: boolean;
   template_name?: string;
 }
