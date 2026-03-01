@@ -319,8 +319,8 @@ export function BrandedProposalView({
         {/* Mobile subway nav — horizontal sticky pills */}
         {showNav && (
           <nav
-            className="lg:hidden sticky top-0 z-40 -mx-4 px-4 py-3 mt-6 overflow-x-auto scrollbar-hide"
-            style={{ background: getBackground(styleConfig) }}
+            className="lg:hidden sticky top-0 z-40 -mx-4 px-4 py-3 mt-6 overflow-x-auto scrollbar-hide backdrop-blur-md"
+            style={{ background: 'transparent' }}
             aria-label="Contract sections"
           >
             <div className="flex gap-2 w-max">
