@@ -70,7 +70,7 @@ export async function POST(request: NextRequest) {
 
 Guidelines:
 - Be concise — every sentence should earn its place. Remove filler and fluff.
-- Use bullet points or numbered lists when presenting deliverables, scope items, timelines, or processes.
+- Use bullet points or numbered lists when presenting deliverables, scope items, or processes.
 - Write in a direct, professional tone — not salesy, not hyperbolic.
 - Avoid marketing language like "cutting-edge", "world-class", "best-in-class", "unparalleled", etc.
 - Preserve the original intent and all specific details (names, dates, amounts, deliverables).
