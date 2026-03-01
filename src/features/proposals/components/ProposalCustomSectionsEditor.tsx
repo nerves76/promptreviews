@@ -173,24 +173,22 @@ export function ProposalCustomSectionsEditor({ sections, onChange }: ProposalCus
               </span>
             )}
             {!collapsedIds.has(section.id) && isReviewsSection(section) && (
-              <div className="flex items-center rounded-md border border-gray-200 overflow-hidden" role="group" aria-label="Review display style">
+              <div className="flex items-center rounded-md border border-gray-200 overflow-hidden text-xs whitespace-nowrap" role="group" aria-label="Review display style">
                 <button
                   type="button"
                   onClick={() => onChange(sections.map((s) => s.id === section.id ? { ...s, reviews_on_card: true } : s))}
-                  className={`p-1.5 transition-colors ${section.reviews_on_card !== false ? 'bg-slate-blue text-white' : 'text-gray-400 hover:text-gray-600'}`}
+                  className={`px-2 py-1 transition-colors ${section.reviews_on_card !== false ? 'bg-slate-blue text-white' : 'text-gray-500 hover:text-gray-700'}`}
                   aria-label="Display reviews on card"
-                  title="On card"
                 >
-                  <Icon name="FaFileAlt" size={12} />
+                  On card
                 </button>
                 <button
                   type="button"
                   onClick={() => onChange(sections.map((s) => s.id === section.id ? { ...s, reviews_on_card: false } : s))}
-                  className={`p-1.5 transition-colors ${section.reviews_on_card === false ? 'bg-slate-blue text-white' : 'text-gray-400 hover:text-gray-600'}`}
-                  aria-label="Display reviews off card"
-                  title="Off card (floating)"
+                  className={`px-2 py-1 transition-colors ${section.reviews_on_card === false ? 'bg-slate-blue text-white' : 'text-gray-500 hover:text-gray-700'}`}
+                  aria-label="Display reviews floating"
                 >
-                  <Icon name="FaGlobe" size={12} />
+                  Floating
                 </button>
               </div>
             )}
