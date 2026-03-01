@@ -36,7 +36,7 @@ export async function POST(request: NextRequest) {
       return NextResponse.json({ error: "No valid account found" }, { status: 403 });
     }
 
-    const { sectionTitle, sectionBody } = await request.json();
+    const { sectionTitle, sectionBody, businessContext } = await request.json();
 
     const titleError = validateRequiredString(sectionTitle, "Section title", MAX_TITLE_LENGTH);
     if (titleError) {
@@ -50,16 +50,33 @@ export async function POST(request: NextRequest) {
 
     const openai = new OpenAI({ apiKey: process.env.OPENAI_API_KEY });
 
-    const systemPrompt = `You are an expert contract writer. Enhance the provided contract section text to be professional and legally precise.
+    // Build business context block if provided
+    let businessBlock = "";
+    if (businessContext && typeof businessContext === "object") {
+      const parts: string[] = [];
+      if (businessContext.name) parts.push(`Business name: ${businessContext.name}`);
+      if (businessContext.industry) parts.push(`Industry: ${businessContext.industry}`);
+      if (businessContext.services) parts.push(`Services: ${businessContext.services}`);
+      if (businessContext.about) parts.push(`About: ${businessContext.about}`);
+      if (businessContext.differentiators) parts.push(`Differentiators: ${businessContext.differentiators}`);
+      if (businessContext.values) parts.push(`Values: ${businessContext.values}`);
+      if (businessContext.yearsInBusiness) parts.push(`Years in business: ${businessContext.yearsInBusiness}`);
+      if (parts.length > 0) {
+        businessBlock = `\n\nYou are writing on behalf of this business — use this context to make the content specific and relevant:\n${parts.join("\n")}`;
+      }
+    }
+
+    const systemPrompt = `You are an expert contract and proposal writer. Enhance the provided section text to be professional, clear, and specific to the business.${businessBlock}
 
 Guidelines:
-- Write as a lawyer would — clear, precise, enforceable
-- Not verbose — no unnecessary legalese or filler
-- Preserve the original intent and all specific details (names, dates, amounts, deliverables)
-- Use standard contract language conventions
-- Improve structure with numbered clauses or bullet points where appropriate
-- Fix grammar, spelling, and punctuation
-- Maintain a professional but readable tone
+- Be concise — every sentence should earn its place. Remove filler and fluff.
+- Use bullet points or numbered lists when presenting deliverables, scope items, timelines, or processes.
+- Write in a direct, professional tone — not salesy, not hyperbolic.
+- Avoid marketing language like "cutting-edge", "world-class", "best-in-class", "unparalleled", etc.
+- Preserve the original intent and all specific details (names, dates, amounts, deliverables).
+- Use standard contract language conventions where appropriate.
+- Fix grammar, spelling, and punctuation.
+- When the business context is available, use it to make generic descriptions specific (e.g., mention actual services, industry terms).
 
 IMPORTANT: Return only the enhanced section text. Do not include the section title, quotes, formatting markers, or commentary.`;
 

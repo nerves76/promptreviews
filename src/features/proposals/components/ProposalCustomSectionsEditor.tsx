@@ -4,7 +4,7 @@ import { useState } from 'react';
 import { ProposalCustomSection, ProposalReviewItem } from '../types';
 import { SavedSectionsModal } from './SavedSectionsModal';
 import { SaveSectionModal } from './SaveSectionModal';
-import { EnhanceSectionModal } from './EnhanceSectionModal';
+import { EnhanceSectionModal, BusinessContext } from './EnhanceSectionModal';
 import { ReviewPickerModal } from './ReviewPickerModal';
 import StarRating from '@/app/(app)/dashboard/widget/components/shared/StarRating';
 import Icon from '@/components/Icon';
@@ -12,13 +12,14 @@ import Icon from '@/components/Icon';
 interface ProposalCustomSectionsEditorProps {
   sections: ProposalCustomSection[];
   onChange: (sections: ProposalCustomSection[]) => void;
+  businessContext?: BusinessContext;
 }
 
 function generateId() {
   return Math.random().toString(36).substring(2, 10);
 }
 
-export function ProposalCustomSectionsEditor({ sections, onChange }: ProposalCustomSectionsEditorProps) {
+export function ProposalCustomSectionsEditor({ sections, onChange, businessContext }: ProposalCustomSectionsEditorProps) {
   const [showImportModal, setShowImportModal] = useState(false);
   const [saveTarget, setSaveTarget] = useState<ProposalCustomSection | null>(null);
   const [enhanceTarget, setEnhanceTarget] = useState<ProposalCustomSection | null>(null);
@@ -343,6 +344,7 @@ export function ProposalCustomSectionsEditor({ sections, onChange }: ProposalCus
           sectionTitle={enhanceTarget.title}
           sectionBody={enhanceTarget.body}
           onAccept={(text) => updateSection(enhanceTarget.id, 'body', text)}
+          businessContext={businessContext}
         />
       )}
 

@@ -7,12 +7,23 @@ import { LoadingSpinner } from '@/app/(app)/components/ui/loading-spinner';
 import Icon from '@/components/Icon';
 import { apiClient } from '@/utils/apiClient';
 
+export interface BusinessContext {
+  name?: string;
+  industry?: string;
+  services?: string;
+  about?: string;
+  differentiators?: string;
+  values?: string;
+  yearsInBusiness?: string;
+}
+
 interface EnhanceSectionModalProps {
   isOpen: boolean;
   onClose: () => void;
   sectionTitle: string;
   sectionBody: string;
   onAccept: (enhancedText: string) => void;
+  businessContext?: BusinessContext;
 }
 
 export function EnhanceSectionModal({
@@ -21,6 +32,7 @@ export function EnhanceSectionModal({
   sectionTitle,
   sectionBody,
   onAccept,
+  businessContext,
 }: EnhanceSectionModalProps) {
   const [enhancedText, setEnhancedText] = useState('');
   const [isLoading, setIsLoading] = useState(false);
@@ -32,7 +44,7 @@ export function EnhanceSectionModal({
     try {
       const data = await apiClient.post<{ text: string }>(
         '/proposals/enhance-section',
-        { sectionTitle, sectionBody },
+        { sectionTitle, sectionBody, businessContext },
       );
       setEnhancedText(data.text || '');
     } catch (err: unknown) {
@@ -41,7 +53,7 @@ export function EnhanceSectionModal({
     } finally {
       setIsLoading(false);
     }
-  }, [sectionTitle, sectionBody]);
+  }, [sectionTitle, sectionBody, businessContext]);
 
   // Auto-generate when modal opens
   useEffect(() => {

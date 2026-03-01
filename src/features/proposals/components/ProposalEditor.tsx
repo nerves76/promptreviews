@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useEffect, useRef } from 'react';
+import { useState, useEffect, useRef, useMemo } from 'react';
 import { useRouter } from 'next/navigation';
 import { apiClient } from '@/utils/apiClient';
 import { Button } from '@/app/(app)/components/ui/button';
@@ -36,6 +36,26 @@ export function ProposalEditor({ proposal, mode, basePath, defaultIsTemplate = f
   const isTemplate = defaultIsTemplate || (mode === 'edit' && !!proposal?.is_template);
   const [saving, setSaving] = useState(false);
   const [error, setError] = useState<string | null>(null);
+
+  // Build business context for AI enhance
+  const businessContext = useMemo(() => {
+    if (!business) return undefined;
+    const biz = business as Record<string, any>;
+    const ctx: Record<string, string> = {};
+    if (biz.name) ctx.name = biz.name;
+    if (Array.isArray(biz.industry) && biz.industry.length > 0) ctx.industry = biz.industry.join(', ');
+    if (biz.services_offered) {
+      const svc = Array.isArray(biz.services_offered)
+        ? biz.services_offered.map((s: any) => typeof s === 'string' ? s : s.name).filter(Boolean).join(', ')
+        : typeof biz.services_offered === 'string' ? biz.services_offered : '';
+      if (svc) ctx.services = svc;
+    }
+    if (biz.about_us) ctx.about = biz.about_us;
+    if (biz.differentiators) ctx.differentiators = biz.differentiators;
+    if (biz.company_values) ctx.values = biz.company_values;
+    if (biz.years_in_business) ctx.yearsInBusiness = biz.years_in_business;
+    return Object.keys(ctx).length > 0 ? ctx : undefined;
+  }, [business]);
 
   // Contact autocomplete state
   const [contactSuggestions, setContactSuggestions] = useState<ContactSuggestion[]>([]);
@@ -634,7 +654,7 @@ export function ProposalEditor({ proposal, mode, basePath, defaultIsTemplate = f
       <div>
         <h3 className="text-sm font-medium text-gray-700 mb-2">Sections</h3>
         {!isReadOnly ? (
-          <ProposalCustomSectionsEditor sections={customSections} onChange={setCustomSections} />
+          <ProposalCustomSectionsEditor sections={customSections} onChange={setCustomSections} businessContext={businessContext} />
         ) : (
           <div className="space-y-4">
             {customSections.map((section) => (
