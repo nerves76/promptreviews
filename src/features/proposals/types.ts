@@ -130,6 +130,9 @@ export interface Proposal {
   viewed_at?: string | null;
   accepted_at?: string | null;
   declined_at?: string | null;
+  discount_type?: 'percentage' | 'flat' | null;
+  discount_value?: number;
+  tax_rate?: number;
   sender_signature_id?: string | null;
   require_signature?: boolean;
   created_at: string;
@@ -192,6 +195,9 @@ export interface CreateProposalRequest {
   custom_sections?: ProposalCustomSection[];
   line_items?: ProposalLineItem[];
   show_sow_number?: boolean;
+  discount_type?: 'percentage' | 'flat' | null;
+  discount_value?: number;
+  tax_rate?: number;
   sender_signature_id?: string | null;
   require_signature?: boolean;
   is_template?: boolean;

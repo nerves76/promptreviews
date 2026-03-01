@@ -35,7 +35,7 @@ function getCardBorderStyle(config: StyleConfig) {
  * Compute SHA256 hash of proposal content using Web Crypto API.
  * Must match the fields used in /api/proposals/sign/route.ts
  */
-async function computeDocumentHash(proposal: { title: string; custom_sections: any; line_items: any; terms_content?: string | null; client_first_name?: string | null; client_last_name?: string | null; client_email?: string | null }): Promise<string> {
+async function computeDocumentHash(proposal: { title: string; custom_sections: any; line_items: any; terms_content?: string | null; client_first_name?: string | null; client_last_name?: string | null; client_email?: string | null; discount_type?: string | null; discount_value?: number; tax_rate?: number }): Promise<string> {
   const content = JSON.stringify({
     title: proposal.title,
     custom_sections: proposal.custom_sections,
@@ -44,6 +44,9 @@ async function computeDocumentHash(proposal: { title: string; custom_sections: a
     client_first_name: proposal.client_first_name,
     client_last_name: proposal.client_last_name,
     client_email: proposal.client_email,
+    discount_type: proposal.discount_type ?? null,
+    discount_value: proposal.discount_value ?? 0,
+    tax_rate: proposal.tax_rate ?? 0,
   });
   const encoder = new TextEncoder();
   const data = encoder.encode(content);

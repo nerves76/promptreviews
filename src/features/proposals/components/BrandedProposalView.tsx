@@ -4,6 +4,7 @@ import React, { useState, useEffect, useRef, useCallback, useMemo } from 'react'
 import Image from 'next/image';
 import { applyCardTransparency, getContrastTextColor, contrastRatio } from '@/utils/colorUtils';
 import { Proposal, ProposalCustomSection, ProposalLineItem, PricingType, PRICING_TYPE_LABELS } from '@/features/proposals/types';
+import { computePricingTotals } from '@/features/proposals/pricingCalc';
 import StarRating from '@/app/(app)/dashboard/widget/components/shared/StarRating';
 import { formatSowNumber } from '@/features/proposals/sowHelpers';
 
@@ -124,20 +125,20 @@ export function BrandedProposalView({
   const defaultPt: PricingType = proposal.pricing_type || 'fixed';
   const getItemType = (item: ProposalLineItem): PricingType => item.pricing_type || defaultPt;
 
-  // Check if all items share the same type
-  const allSameType = lineItems.length > 0 && lineItems.every((item) => getItemType(item) === getItemType(lineItems[0]));
-  const uniformType = allSameType ? getItemType(lineItems[0]) : null;
-
-  // Compute totals by category
-  const oneTimeTotal = lineItems
-    .filter((item) => getItemType(item) !== 'monthly')
-    .reduce((sum, item) => sum + item.quantity * item.unit_price, 0);
-  const monthlyTotal = lineItems
-    .filter((item) => getItemType(item) === 'monthly')
-    .reduce((sum, item) => sum + item.quantity * item.unit_price, 0);
-  const grandTotal = lineItems.reduce((sum, item) => sum + item.quantity * item.unit_price, 0);
-  const hasMixedTypes = oneTimeTotal > 0 && monthlyTotal > 0;
+  // Compute totals via shared utility
+  const totals = computePricingTotals(
+    lineItems,
+    defaultPt,
+    proposal.discount_type,
+    proposal.discount_value,
+    proposal.tax_rate,
+  );
+  const { allSameType, uniformType, hasMixedTypes } = totals;
   const showTypeColumn = !allSameType;
+  const hasDiscount = (totals.discountOneTime + totals.discountMonthly) > 0;
+  const hasTax = (totals.taxOneTime + totals.taxMonthly) > 0;
+  const hasAdjustments = hasDiscount || hasTax;
+  const colSpan = showTypeColumn ? 4 : 3;
 
   const qtyHeader = uniformType === 'hourly' ? 'Hours' : 'Qty';
   const rateHeader = uniformType === 'hourly' ? 'Rate' : uniformType === 'monthly' ? 'Monthly rate' : 'Unit price';
@@ -546,40 +547,100 @@ export function BrandedProposalView({
                 <tfoot>
                   {hasMixedTypes ? (
                     <>
+                      {/* Subtotal rows */}
                       <tr style={{ borderTop: `2px solid ${mutedColor}33` }}>
-                        <td colSpan={showTypeColumn ? 4 : 3} className="text-right py-2 pr-4 font-semibold text-sm" style={{ color }}>
-                          One-time total
+                        <td colSpan={colSpan} className="text-right py-2 pr-4 font-semibold text-sm" style={{ color }}>
+                          {hasAdjustments ? 'One-time subtotal' : 'One-time total'}
                         </td>
                         <td className="text-right py-2 pl-4 font-bold" style={{ color }}>
-                          ${oneTimeTotal.toFixed(2)}
+                          ${totals.oneTimeSubtotal.toFixed(2)}
                         </td>
                       </tr>
                       <tr>
-                        <td colSpan={showTypeColumn ? 4 : 3} className="text-right py-2 pr-4 font-semibold text-sm" style={{ color }}>
-                          Monthly total
+                        <td colSpan={colSpan} className="text-right py-2 pr-4 font-semibold text-sm" style={{ color }}>
+                          {hasAdjustments ? 'Recurring subtotal' : 'Monthly total'}
                         </td>
                         <td className="text-right py-2 pl-4 font-bold" style={{ color }}>
-                          ${monthlyTotal.toFixed(2)}/mo
+                          ${totals.monthlySubtotal.toFixed(2)}/mo
                         </td>
                       </tr>
+                      {/* Discount row */}
+                      {hasDiscount && (
+                        <tr>
+                          <td colSpan={colSpan} className="text-right py-2 pr-4 font-semibold text-sm" style={{ color }}>
+                            {proposal.discount_type === 'percentage' ? `Discount (${proposal.discount_value}%)` : 'Discount'}
+                          </td>
+                          <td className="text-right py-2 pl-4 font-bold" style={{ color }}>
+                            -${(totals.discountOneTime + totals.discountMonthly).toFixed(2)}
+                          </td>
+                        </tr>
+                      )}
+                      {/* Tax row */}
+                      {hasTax && (
+                        <tr>
+                          <td colSpan={colSpan} className="text-right py-2 pr-4 font-semibold text-sm" style={{ color }}>
+                            Tax ({proposal.tax_rate}%)
+                          </td>
+                          <td className="text-right py-2 pl-4 font-bold" style={{ color }}>
+                            +${(totals.taxOneTime + totals.taxMonthly).toFixed(2)}
+                          </td>
+                        </tr>
+                      )}
+                      {/* Grand total */}
                       <tr style={{ borderTop: `1px solid ${mutedColor}33` }}>
-                        <td colSpan={showTypeColumn ? 4 : 3} className="text-right py-3 pr-4 font-semibold" style={{ color }}>
+                        <td colSpan={colSpan} className="text-right py-3 pr-4 font-semibold" style={{ color }}>
                           Grand total
                         </td>
                         <td className="text-right py-3 pl-4 font-bold text-lg" style={{ color }}>
-                          ${oneTimeTotal.toFixed(2)} + ${monthlyTotal.toFixed(2)}/mo
+                          ${totals.grandTotalOneTime.toFixed(2)} + ${totals.grandTotalMonthly.toFixed(2)}/mo
                         </td>
                       </tr>
                     </>
                   ) : (
-                    <tr style={{ borderTop: `2px solid ${mutedColor}33` }}>
-                      <td colSpan={showTypeColumn ? 4 : 3} className="text-right py-3 pr-4 font-semibold" style={{ color }}>
-                        Grand total{uniformType === 'monthly' ? ' per month' : ''}
-                      </td>
-                      <td className="text-right py-3 pl-4 font-bold text-lg" style={{ color }}>
-                        ${grandTotal.toFixed(2)}{uniformType === 'monthly' ? '/mo' : ''}
-                      </td>
-                    </tr>
+                    <>
+                      {/* Subtotal (only shown when there are adjustments) */}
+                      {hasAdjustments && (
+                        <tr style={{ borderTop: `2px solid ${mutedColor}33` }}>
+                          <td colSpan={colSpan} className="text-right py-2 pr-4 font-semibold text-sm" style={{ color }}>
+                            Subtotal{uniformType === 'monthly' ? ' per month' : ''}
+                          </td>
+                          <td className="text-right py-2 pl-4 font-bold" style={{ color }}>
+                            ${(totals.oneTimeSubtotal + totals.monthlySubtotal).toFixed(2)}{uniformType === 'monthly' ? '/mo' : ''}
+                          </td>
+                        </tr>
+                      )}
+                      {/* Discount row */}
+                      {hasDiscount && (
+                        <tr>
+                          <td colSpan={colSpan} className="text-right py-2 pr-4 font-semibold text-sm" style={{ color }}>
+                            {proposal.discount_type === 'percentage' ? `Discount (${proposal.discount_value}%)` : 'Discount'}
+                          </td>
+                          <td className="text-right py-2 pl-4 font-bold" style={{ color }}>
+                            -${(totals.discountOneTime + totals.discountMonthly).toFixed(2)}
+                          </td>
+                        </tr>
+                      )}
+                      {/* Tax row */}
+                      {hasTax && (
+                        <tr>
+                          <td colSpan={colSpan} className="text-right py-2 pr-4 font-semibold text-sm" style={{ color }}>
+                            Tax ({proposal.tax_rate}%)
+                          </td>
+                          <td className="text-right py-2 pl-4 font-bold" style={{ color }}>
+                            +${(totals.taxOneTime + totals.taxMonthly).toFixed(2)}
+                          </td>
+                        </tr>
+                      )}
+                      {/* Grand total */}
+                      <tr style={{ borderTop: hasAdjustments ? `1px solid ${mutedColor}33` : `2px solid ${mutedColor}33` }}>
+                        <td colSpan={colSpan} className="text-right py-3 pr-4 font-semibold" style={{ color }}>
+                          Grand total{uniformType === 'monthly' ? ' per month' : ''}
+                        </td>
+                        <td className="text-right py-3 pl-4 font-bold text-lg" style={{ color }}>
+                          ${(totals.grandTotalOneTime + totals.grandTotalMonthly).toFixed(2)}{uniformType === 'monthly' ? '/mo' : ''}
+                        </td>
+                      </tr>
+                    </>
                   )}
                 </tfoot>
               </table>

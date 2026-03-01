@@ -77,6 +77,12 @@ export function ProposalEditor({ proposal, mode, basePath, defaultIsTemplate = f
   const [showSavedTerms, setShowSavedTerms] = useState(false);
   const [showSaveTerms, setShowSaveTerms] = useState(false);
 
+  // Discount & tax state
+  const [discountType, setDiscountType] = useState<'percentage' | 'flat' | null>(proposal?.discount_type || null);
+  const [discountValue, setDiscountValue] = useState<number>(proposal?.discount_value || 0);
+  const [taxRate, setTaxRate] = useState<number>(proposal?.tax_rate || 0);
+  const [taxEnabled, setTaxEnabled] = useState<boolean>((proposal?.tax_rate ?? 0) > 0);
+
   // Signature requirement state
   const [requireSignature, setRequireSignature] = useState(proposal?.require_signature ?? true);
 
@@ -135,6 +141,10 @@ export function ProposalEditor({ proposal, mode, basePath, defaultIsTemplate = f
       setCustomSections(Array.isArray(proposal.custom_sections) ? proposal.custom_sections : []);
       setLineItems(Array.isArray(proposal.line_items) ? proposal.line_items : []);
       setStatus(proposal.status || 'draft');
+      setDiscountType(proposal.discount_type || null);
+      setDiscountValue(proposal.discount_value || 0);
+      setTaxRate(proposal.tax_rate || 0);
+      setTaxEnabled((proposal.tax_rate ?? 0) > 0);
       setRequireSignature(proposal.require_signature ?? true);
       setSenderSignatureId(proposal.sender_signature_id || null);
     }
@@ -252,6 +262,9 @@ export function ProposalEditor({ proposal, mode, basePath, defaultIsTemplate = f
         terms_content: termsContent || null,
         custom_sections: customSections,
         line_items: lineItems,
+        discount_type: discountType,
+        discount_value: discountType ? discountValue : 0,
+        tax_rate: taxRate,
         sender_signature_id: senderSignatureId,
         require_signature: requireSignature,
       };
@@ -666,12 +679,109 @@ export function ProposalEditor({ proposal, mode, basePath, defaultIsTemplate = f
           </div>
         )}
         {showPricing && !isReadOnly && (
-          <ProposalLineItemsEditor lineItems={lineItems} onChange={setLineItems} defaultPricingType={pricingType} />
+          <ProposalLineItemsEditor
+            lineItems={lineItems}
+            onChange={setLineItems}
+            defaultPricingType={pricingType}
+            discountType={discountType}
+            discountValue={discountValue}
+            taxRate={taxRate}
+          />
         )}
         {showPricing && isReadOnly && lineItems.length > 0 && (
           <div className="text-sm text-gray-600">
             {lineItems.length} line item{lineItems.length !== 1 ? 's' : ''} — Total: $
             {lineItems.reduce((sum, i) => sum + i.quantity * i.unit_price, 0).toFixed(2)}
+          </div>
+        )}
+
+        {/* Discount & tax controls */}
+        {showPricing && !isReadOnly && (
+          <div className="mt-4 space-y-3">
+            {/* Discount */}
+            <div>
+              <label className="flex items-center gap-2 cursor-pointer">
+                <input
+                  type="checkbox"
+                  checked={discountType !== null}
+                  onChange={(e) => {
+                    if (e.target.checked) {
+                      setDiscountType('percentage');
+                      if (!discountValue) setDiscountValue(0);
+                    } else {
+                      setDiscountType(null);
+                      setDiscountValue(0);
+                    }
+                  }}
+                  className="rounded border-gray-300 text-slate-blue focus:ring-slate-blue"
+                />
+                <span className="text-sm font-medium text-gray-700">Add discount</span>
+              </label>
+              {discountType !== null && (
+                <div className="flex items-center gap-2 mt-2 ml-6">
+                  <select
+                    value={discountType}
+                    onChange={(e) => setDiscountType(e.target.value as 'percentage' | 'flat')}
+                    className="border border-gray-300 rounded-lg px-2 py-1.5 text-sm focus:outline-none focus:ring-2 focus:ring-slate-blue focus:ring-offset-1 w-28"
+                    aria-label="Discount type"
+                  >
+                    <option value="percentage">Percentage</option>
+                    <option value="flat">Flat amount</option>
+                  </select>
+                  <div className="relative">
+                    {discountType === 'flat' && (
+                      <span className="absolute left-2 top-1/2 -translate-y-1/2 text-gray-500 text-sm">$</span>
+                    )}
+                    <input
+                      type="number"
+                      min="0"
+                      step={discountType === 'percentage' ? '1' : '0.01'}
+                      max={discountType === 'percentage' ? '100' : undefined}
+                      value={discountValue || ''}
+                      onChange={(e) => setDiscountValue(parseFloat(e.target.value) || 0)}
+                      className={`w-28 border border-gray-300 rounded-lg ${discountType === 'flat' ? 'pl-6' : 'pl-3'} pr-7 py-1.5 text-sm focus:outline-none focus:ring-2 focus:ring-slate-blue focus:ring-offset-1`}
+                      aria-label="Discount value"
+                    />
+                    {discountType === 'percentage' && (
+                      <span className="absolute right-2 top-1/2 -translate-y-1/2 text-gray-500 text-sm">%</span>
+                    )}
+                  </div>
+                </div>
+              )}
+            </div>
+
+            {/* Tax */}
+            <div>
+              <label className="flex items-center gap-2 cursor-pointer">
+                <input
+                  type="checkbox"
+                  checked={taxEnabled}
+                  onChange={(e) => {
+                    setTaxEnabled(e.target.checked);
+                    if (!e.target.checked) setTaxRate(0);
+                  }}
+                  className="rounded border-gray-300 text-slate-blue focus:ring-slate-blue"
+                />
+                <span className="text-sm font-medium text-gray-700">Add tax</span>
+              </label>
+              {taxEnabled && (
+                <div className="flex items-center gap-2 mt-2 ml-6">
+                  <div className="relative">
+                    <input
+                      type="number"
+                      min="0"
+                      step="0.01"
+                      max="100"
+                      value={taxRate || ''}
+                      onChange={(e) => setTaxRate(parseFloat(e.target.value) || 0)}
+                      className="w-28 border border-gray-300 rounded-lg pl-3 pr-7 py-1.5 text-sm focus:outline-none focus:ring-2 focus:ring-slate-blue focus:ring-offset-1"
+                      aria-label="Tax rate"
+                    />
+                    <span className="absolute right-2 top-1/2 -translate-y-1/2 text-gray-500 text-sm">%</span>
+                  </div>
+                </div>
+              )}
+            </div>
           </div>
         )}
       </div>

@@ -73,6 +73,9 @@ export async function POST(request: NextRequest) {
       client_first_name: proposal.client_first_name,
       client_last_name: proposal.client_last_name,
       client_email: proposal.client_email,
+      discount_type: proposal.discount_type ?? null,
+      discount_value: proposal.discount_value ?? 0,
+      tax_rate: proposal.tax_rate ?? 0,
     });
     const documentHash = createHash('sha256').update(content).digest('hex');
 

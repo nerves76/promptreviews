@@ -1,6 +1,7 @@
 'use client';
 
 import { ProposalLineItem, PricingType, PRICING_TYPE_LABELS } from '../types';
+import { computePricingTotals } from '../pricingCalc';
 import Icon from '@/components/Icon';
 
 interface ProposalLineItemsEditorProps {
@@ -8,6 +9,10 @@ interface ProposalLineItemsEditorProps {
   onChange: (items: ProposalLineItem[]) => void;
   /** Default pricing type applied to newly added items */
   defaultPricingType?: PricingType;
+  /** Discount/tax passed from parent for live total preview */
+  discountType?: 'percentage' | 'flat' | null;
+  discountValue?: number;
+  taxRate?: number;
 }
 
 function generateId() {
@@ -22,7 +27,7 @@ function getRateLabel(pt: PricingType) {
   return pt === 'hourly' ? 'Rate' : pt === 'monthly' ? 'Monthly rate' : 'Unit price';
 }
 
-export function ProposalLineItemsEditor({ lineItems, onChange, defaultPricingType = 'fixed' }: ProposalLineItemsEditorProps) {
+export function ProposalLineItemsEditor({ lineItems, onChange, defaultPricingType = 'fixed', discountType, discountValue, taxRate }: ProposalLineItemsEditorProps) {
   const addItem = () => {
     onChange([...lineItems, { id: generateId(), description: '', quantity: 1, unit_price: 0, pricing_type: defaultPricingType }]);
   };
@@ -39,18 +44,11 @@ export function ProposalLineItemsEditor({ lineItems, onChange, defaultPricingTyp
     );
   };
 
-  // Check if all items share the same pricing type
-  const allSameType = lineItems.length > 0 && lineItems.every((item) => (item.pricing_type || defaultPricingType) === (lineItems[0].pricing_type || defaultPricingType));
-  const uniformType = allSameType ? (lineItems[0]?.pricing_type || defaultPricingType) : null;
-
-  // Compute totals
-  const oneTimeTotal = lineItems
-    .filter((item) => (item.pricing_type || defaultPricingType) !== 'monthly')
-    .reduce((sum, item) => sum + item.quantity * item.unit_price, 0);
-  const monthlyTotal = lineItems
-    .filter((item) => (item.pricing_type || defaultPricingType) === 'monthly')
-    .reduce((sum, item) => sum + item.quantity * item.unit_price, 0);
-  const grandTotal = lineItems.reduce((sum, item) => sum + item.quantity * item.unit_price, 0);
+  const totals = computePricingTotals(lineItems, defaultPricingType, discountType, discountValue, taxRate);
+  const { uniformType } = totals;
+  const hasDiscount = (totals.discountOneTime + totals.discountMonthly) > 0;
+  const hasTax = (totals.taxOneTime + totals.taxMonthly) > 0;
+  const hasAdjustments = hasDiscount || hasTax;
 
   return (
     <div>
@@ -146,31 +144,93 @@ export function ProposalLineItemsEditor({ lineItems, onChange, defaultPricingTyp
       {lineItems.length > 0 && (
         <div className="flex justify-end mt-2 pr-12">
           <div className="text-right space-y-0.5">
-            {/* When mixed types, show split totals */}
-            {oneTimeTotal > 0 && monthlyTotal > 0 ? (
+            {totals.hasMixedTypes ? (
               <>
+                {/* Subtotal rows */}
                 <div>
-                  <span className="text-sm font-medium text-gray-500 mr-4">One-time:</span>
-                  <span className="text-base font-semibold text-gray-900">${oneTimeTotal.toFixed(2)}</span>
+                  <span className="text-sm font-medium text-gray-500 mr-4">
+                    {hasAdjustments ? 'One-time subtotal:' : 'One-time:'}
+                  </span>
+                  <span className="text-base font-semibold text-gray-900">${totals.oneTimeSubtotal.toFixed(2)}</span>
                 </div>
                 <div>
-                  <span className="text-sm font-medium text-gray-500 mr-4">Recurring:</span>
-                  <span className="text-base font-semibold text-gray-900">${monthlyTotal.toFixed(2)}/mo</span>
+                  <span className="text-sm font-medium text-gray-500 mr-4">
+                    {hasAdjustments ? 'Recurring subtotal:' : 'Recurring:'}
+                  </span>
+                  <span className="text-base font-semibold text-gray-900">${totals.monthlySubtotal.toFixed(2)}/mo</span>
                 </div>
+                {/* Discount row */}
+                {hasDiscount && (
+                  <div>
+                    <span className="text-sm font-medium text-gray-500 mr-4">
+                      Discount{discountType === 'percentage' ? ` (${discountValue}%)` : ''}:
+                    </span>
+                    <span className="text-base font-semibold text-red-600">
+                      -${(totals.discountOneTime + totals.discountMonthly).toFixed(2)}
+                    </span>
+                  </div>
+                )}
+                {/* Tax row */}
+                {hasTax && (
+                  <div>
+                    <span className="text-sm font-medium text-gray-500 mr-4">
+                      Tax ({taxRate}%):
+                    </span>
+                    <span className="text-base font-semibold text-gray-900">
+                      +${(totals.taxOneTime + totals.taxMonthly).toFixed(2)}
+                    </span>
+                  </div>
+                )}
+                {/* Grand total */}
                 <div className="pt-1 border-t border-gray-200">
                   <span className="text-sm font-medium text-gray-500 mr-4">Grand total:</span>
                   <span className="text-lg font-bold text-gray-900">
-                    ${oneTimeTotal.toFixed(2)} + ${monthlyTotal.toFixed(2)}/mo
+                    ${totals.grandTotalOneTime.toFixed(2)} + ${totals.grandTotalMonthly.toFixed(2)}/mo
                   </span>
                 </div>
               </>
             ) : (
-              <div>
-                <span className="text-sm font-medium text-gray-500 mr-4">
-                  Grand total{uniformType === 'monthly' ? '/mo' : ''}:
-                </span>
-                <span className="text-lg font-bold text-gray-900">${grandTotal.toFixed(2)}</span>
-              </div>
+              <>
+                {/* Show subtotal separately only when there are adjustments */}
+                {hasAdjustments && (
+                  <div>
+                    <span className="text-sm font-medium text-gray-500 mr-4">
+                      Subtotal{uniformType === 'monthly' ? '/mo' : ''}:
+                    </span>
+                    <span className="text-base font-semibold text-gray-900">
+                      ${(totals.oneTimeSubtotal + totals.monthlySubtotal).toFixed(2)}
+                    </span>
+                  </div>
+                )}
+                {hasDiscount && (
+                  <div>
+                    <span className="text-sm font-medium text-gray-500 mr-4">
+                      Discount{discountType === 'percentage' ? ` (${discountValue}%)` : ''}:
+                    </span>
+                    <span className="text-base font-semibold text-red-600">
+                      -${(totals.discountOneTime + totals.discountMonthly).toFixed(2)}
+                    </span>
+                  </div>
+                )}
+                {hasTax && (
+                  <div>
+                    <span className="text-sm font-medium text-gray-500 mr-4">
+                      Tax ({taxRate}%):
+                    </span>
+                    <span className="text-base font-semibold text-gray-900">
+                      +${(totals.taxOneTime + totals.taxMonthly).toFixed(2)}
+                    </span>
+                  </div>
+                )}
+                <div className={hasAdjustments ? 'pt-1 border-t border-gray-200' : ''}>
+                  <span className="text-sm font-medium text-gray-500 mr-4">
+                    Grand total{uniformType === 'monthly' ? '/mo' : ''}:
+                  </span>
+                  <span className="text-lg font-bold text-gray-900">
+                    ${(totals.grandTotalOneTime + totals.grandTotalMonthly).toFixed(2)}
+                  </span>
+                </div>
+              </>
             )}
           </div>
         </div>

@@ -139,6 +139,9 @@ export async function POST(request: NextRequest) {
         is_template: isTemplate,
         template_name: body.template_name?.trim() || null,
         sow_number: sowNumber,
+        discount_type: body.discount_type || null,
+        discount_value: body.discount_value ?? 0,
+        tax_rate: body.tax_rate ?? 0,
         sender_signature_id: body.sender_signature_id || null,
         require_signature: body.require_signature ?? true,
       })
