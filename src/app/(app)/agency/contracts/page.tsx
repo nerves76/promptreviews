@@ -46,6 +46,9 @@ export default function ContractsPage() {
   const { toasts, closeToast, success, error: showError } = useToast();
   const [sowPrefix, setSowPrefix] = useState<string | null>(null);
 
+  // Stats state
+  const [stats, setStats] = useState<{ sent: number; won: number; lost: number; winRate: number | null } | null>(null);
+
   // Templates tab state
   const [templates, setTemplates] = useState<Proposal[]>([]);
   const [templatesLoading, setTemplatesLoading] = useState(false);
@@ -98,7 +101,16 @@ export default function ContractsPage() {
         // Non-critical
       }
     }
+    async function fetchStats() {
+      try {
+        const data = await apiClient.get<{ sent: number; won: number; lost: number; winRate: number | null }>('/proposals/stats');
+        setStats(data);
+      } catch {
+        // Non-critical
+      }
+    }
     fetchPrefix();
+    fetchStats();
   }, []);
 
   // Check for post-save modal trigger
@@ -433,6 +445,30 @@ export default function ContractsPage() {
       {/* ===== CONTRACTS TAB ===== */}
       {activeTab === 'contracts' && (
         <>
+          {/* Stats bar */}
+          {stats && (stats.sent > 0 || stats.won > 0 || stats.lost > 0) && (
+            <div className="grid grid-cols-2 sm:grid-cols-4 gap-4 mb-6">
+              <div className="bg-blue-50 border border-blue-100 rounded-lg px-4 py-3">
+                <p className="text-xs font-medium text-gray-500 uppercase tracking-wide">Sent</p>
+                <p className="text-2xl font-bold text-gray-900 mt-0.5">{stats.sent}</p>
+              </div>
+              <div className="bg-green-50 border border-green-100 rounded-lg px-4 py-3">
+                <p className="text-xs font-medium text-gray-500 uppercase tracking-wide">Won</p>
+                <p className="text-2xl font-bold text-green-700 mt-0.5">{stats.won}</p>
+              </div>
+              <div className="bg-red-50 border border-red-100 rounded-lg px-4 py-3">
+                <p className="text-xs font-medium text-gray-500 uppercase tracking-wide">Lost</p>
+                <p className="text-2xl font-bold text-red-700 mt-0.5">{stats.lost}</p>
+              </div>
+              <div className="bg-gray-50 border border-gray-200 rounded-lg px-4 py-3">
+                <p className="text-xs font-medium text-gray-500 uppercase tracking-wide">Win rate</p>
+                <p className="text-2xl font-bold text-gray-900 mt-0.5">
+                  {stats.winRate !== null ? `${stats.winRate}%` : '—'}
+                </p>
+              </div>
+            </div>
+          )}
+
           {/* Status dropdown filter */}
           <div className="mb-6">
             <select
