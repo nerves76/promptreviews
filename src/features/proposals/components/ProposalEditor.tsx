@@ -669,188 +669,213 @@ export function ProposalEditor({ proposal, mode, basePath, defaultIsTemplate = f
       </div>
 
       {/* Pricing toggle + editor */}
-      <div>
-        <div className="flex items-center gap-3 mb-3">
-          <label className="flex items-center gap-2 cursor-pointer">
-            <input
-              type="checkbox"
-              checked={showPricing}
-              onChange={(e) => setShowPricing(e.target.checked)}
-              disabled={!!isReadOnly}
-              className="rounded border-gray-300 text-slate-blue focus:ring-slate-blue"
-            />
-            <span className="text-sm font-medium text-gray-700">Include pricing table</span>
-          </label>
+      <div className="rounded-lg border border-gray-200 bg-gray-50 p-4 sm:p-5">
+        <div className="flex items-start justify-between">
+          <div>
+            <h3 className="text-sm font-semibold text-gray-900">Pricing table</h3>
+            <p className="text-xs text-gray-500 mt-0.5">Add line items with quantities and rates to show a pricing breakdown.</p>
+          </div>
+          <button
+            type="button"
+            onClick={() => setShowPricing(!showPricing)}
+            disabled={!!isReadOnly}
+            className={`relative inline-flex h-6 w-11 shrink-0 items-center rounded-full transition-colors focus:outline-none disabled:opacity-50 ${showPricing ? 'bg-slate-blue' : 'bg-gray-300'}`}
+            aria-pressed={showPricing}
+            aria-label="Toggle pricing table"
+          >
+            <span className={`inline-block h-4 w-4 transform rounded-full bg-white shadow transition-transform ${showPricing ? 'translate-x-5' : 'translate-x-1'}`} />
+          </button>
         </div>
-        {showPricing && !isReadOnly && (
-          <div className="mb-3">
-            <label htmlFor="pricing-type" className="block text-xs text-gray-500 mb-1">Default pricing type</label>
-            <select
-              id="pricing-type"
-              value={pricingType}
-              onChange={(e) => setPricingType(e.target.value as PricingType)}
-              className="border border-gray-300 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-slate-blue focus:ring-offset-1 w-40"
-            >
-              {(Object.keys(PRICING_TYPE_LABELS) as PricingType[]).map((key) => (
-                <option key={key} value={key}>{PRICING_TYPE_LABELS[key]}</option>
-              ))}
-            </select>
-            <p className="text-xs text-gray-500 mt-1">New line items will default to this type. You can override per item.</p>
-          </div>
-        )}
-        {showPricing && !isReadOnly && (
-          <ProposalLineItemsEditor
-            lineItems={lineItems}
-            onChange={setLineItems}
-            defaultPricingType={pricingType}
-            discountType={discountType}
-            discountValue={discountValue}
-            taxRate={taxRate}
-          />
-        )}
-        {showPricing && isReadOnly && lineItems.length > 0 && (
-          <div className="text-sm text-gray-600">
-            {lineItems.length} line item{lineItems.length !== 1 ? 's' : ''} — Total: $
-            {lineItems.reduce((sum, i) => sum + i.quantity * i.unit_price, 0).toFixed(2)}
-          </div>
-        )}
+        {showPricing && (
+          <div className="mt-4 space-y-4">
+            {!isReadOnly && (
+              <div>
+                <label htmlFor="pricing-type" className="block text-xs text-gray-500 mb-1">Default pricing type</label>
+                <select
+                  id="pricing-type"
+                  value={pricingType}
+                  onChange={(e) => setPricingType(e.target.value as PricingType)}
+                  className="border border-gray-300 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-slate-blue focus:ring-offset-1 w-40"
+                >
+                  {(Object.keys(PRICING_TYPE_LABELS) as PricingType[]).map((key) => (
+                    <option key={key} value={key}>{PRICING_TYPE_LABELS[key]}</option>
+                  ))}
+                </select>
+                <p className="text-xs text-gray-500 mt-1">New line items will default to this type. You can override per item.</p>
+              </div>
+            )}
+            {!isReadOnly && (
+              <ProposalLineItemsEditor
+                lineItems={lineItems}
+                onChange={setLineItems}
+                defaultPricingType={pricingType}
+                discountType={discountType}
+                discountValue={discountValue}
+                taxRate={taxRate}
+              />
+            )}
+            {isReadOnly && lineItems.length > 0 && (
+              <div className="text-sm text-gray-600">
+                {lineItems.length} line item{lineItems.length !== 1 ? 's' : ''} — Total: $
+                {lineItems.reduce((sum, i) => sum + i.quantity * i.unit_price, 0).toFixed(2)}
+              </div>
+            )}
 
-        {/* Discount & tax controls */}
-        {showPricing && !isReadOnly && (
-          <div className="mt-4 space-y-3">
-            {/* Discount */}
-            <div>
-              <label className="flex items-center gap-2 cursor-pointer">
-                <input
-                  type="checkbox"
-                  checked={discountType !== null}
-                  onChange={(e) => {
-                    if (e.target.checked) {
-                      setDiscountType('percentage');
-                      if (!discountValue) setDiscountValue(0);
-                    } else {
-                      setDiscountType(null);
-                      setDiscountValue(0);
-                    }
-                  }}
-                  className="rounded border-gray-300 text-slate-blue focus:ring-slate-blue"
-                />
-                <span className="text-sm font-medium text-gray-700">Add discount</span>
-              </label>
-              {discountType !== null && (
-                <div className="flex items-center gap-2 mt-2 ml-6">
-                  <select
-                    value={discountType}
-                    onChange={(e) => setDiscountType(e.target.value as 'percentage' | 'flat')}
-                    className="border border-gray-300 rounded-lg px-2 py-1.5 text-sm focus:outline-none focus:ring-2 focus:ring-slate-blue focus:ring-offset-1 w-28"
-                    aria-label="Discount type"
-                  >
-                    <option value="percentage">Percentage</option>
-                    <option value="flat">Flat amount</option>
-                  </select>
-                  <div className="relative">
-                    {discountType === 'flat' && (
-                      <span className="absolute left-2 top-1/2 -translate-y-1/2 text-gray-500 text-sm">$</span>
-                    )}
-                    <input
-                      type="number"
-                      min="0"
-                      step={discountType === 'percentage' ? '1' : '0.01'}
-                      max={discountType === 'percentage' ? '100' : undefined}
-                      value={discountValue || ''}
-                      onChange={(e) => setDiscountValue(parseFloat(e.target.value) || 0)}
-                      className={`w-28 border border-gray-300 rounded-lg ${discountType === 'flat' ? 'pl-6' : 'pl-3'} pr-7 py-1.5 text-sm focus:outline-none focus:ring-2 focus:ring-slate-blue focus:ring-offset-1`}
-                      aria-label="Discount value"
-                    />
-                    {discountType === 'percentage' && (
-                      <span className="absolute right-2 top-1/2 -translate-y-1/2 text-gray-500 text-sm">%</span>
-                    )}
+            {/* Discount & tax toggles */}
+            {!isReadOnly && (
+              <div className="space-y-3 pt-2 border-t border-gray-200">
+                {/* Discount */}
+                <div className="rounded-lg border border-gray-200 bg-white p-3 sm:p-4">
+                  <div className="flex items-start justify-between">
+                    <div>
+                      <h4 className="text-sm font-semibold text-gray-900">Discount</h4>
+                      <p className="text-xs text-gray-500 mt-0.5">Apply a percentage or flat amount discount to the subtotal.</p>
+                    </div>
+                    <button
+                      type="button"
+                      onClick={() => {
+                        if (discountType !== null) {
+                          setDiscountType(null);
+                          setDiscountValue(0);
+                        } else {
+                          setDiscountType('percentage');
+                        }
+                      }}
+                      className={`relative inline-flex h-6 w-11 shrink-0 items-center rounded-full transition-colors focus:outline-none ${discountType !== null ? 'bg-slate-blue' : 'bg-gray-300'}`}
+                      aria-pressed={discountType !== null}
+                      aria-label="Toggle discount"
+                    >
+                      <span className={`inline-block h-4 w-4 transform rounded-full bg-white shadow transition-transform ${discountType !== null ? 'translate-x-5' : 'translate-x-1'}`} />
+                    </button>
                   </div>
+                  {discountType !== null && (
+                    <div className="flex items-center gap-2 mt-3">
+                      <select
+                        value={discountType}
+                        onChange={(e) => setDiscountType(e.target.value as 'percentage' | 'flat')}
+                        className="border border-gray-300 rounded-lg px-2 py-1.5 text-sm focus:outline-none focus:ring-2 focus:ring-slate-blue focus:ring-offset-1 w-28"
+                        aria-label="Discount type"
+                      >
+                        <option value="percentage">Percentage</option>
+                        <option value="flat">Flat amount</option>
+                      </select>
+                      <div className="relative">
+                        {discountType === 'flat' && (
+                          <span className="absolute left-2 top-1/2 -translate-y-1/2 text-gray-500 text-sm">$</span>
+                        )}
+                        <input
+                          type="number"
+                          min="0"
+                          step={discountType === 'percentage' ? '1' : '0.01'}
+                          max={discountType === 'percentage' ? '100' : undefined}
+                          value={discountValue || ''}
+                          onChange={(e) => setDiscountValue(parseFloat(e.target.value) || 0)}
+                          className={`w-28 border border-gray-300 rounded-lg ${discountType === 'flat' ? 'pl-6' : 'pl-3'} pr-7 py-1.5 text-sm focus:outline-none focus:ring-2 focus:ring-slate-blue focus:ring-offset-1`}
+                          aria-label="Discount value"
+                        />
+                        {discountType === 'percentage' && (
+                          <span className="absolute right-2 top-1/2 -translate-y-1/2 text-gray-500 text-sm">%</span>
+                        )}
+                      </div>
+                    </div>
+                  )}
                 </div>
-              )}
-            </div>
 
-            {/* Tax */}
-            <div>
-              <label className="flex items-center gap-2 cursor-pointer">
-                <input
-                  type="checkbox"
-                  checked={taxEnabled}
-                  onChange={(e) => {
-                    setTaxEnabled(e.target.checked);
-                    if (!e.target.checked) setTaxRate(0);
-                  }}
-                  className="rounded border-gray-300 text-slate-blue focus:ring-slate-blue"
-                />
-                <span className="text-sm font-medium text-gray-700">Add tax</span>
-              </label>
-              {taxEnabled && (
-                <div className="flex items-center gap-2 mt-2 ml-6">
-                  <div className="relative">
-                    <input
-                      type="number"
-                      min="0"
-                      step="0.01"
-                      max="100"
-                      value={taxRate || ''}
-                      onChange={(e) => setTaxRate(parseFloat(e.target.value) || 0)}
-                      className="w-28 border border-gray-300 rounded-lg pl-3 pr-7 py-1.5 text-sm focus:outline-none focus:ring-2 focus:ring-slate-blue focus:ring-offset-1"
-                      aria-label="Tax rate"
-                    />
-                    <span className="absolute right-2 top-1/2 -translate-y-1/2 text-gray-500 text-sm">%</span>
+                {/* Tax */}
+                <div className="rounded-lg border border-gray-200 bg-white p-3 sm:p-4">
+                  <div className="flex items-start justify-between">
+                    <div>
+                      <h4 className="text-sm font-semibold text-gray-900">Tax</h4>
+                      <p className="text-xs text-gray-500 mt-0.5">Apply a tax rate to the subtotal after any discount.</p>
+                    </div>
+                    <button
+                      type="button"
+                      onClick={() => {
+                        setTaxEnabled(!taxEnabled);
+                        if (taxEnabled) setTaxRate(0);
+                      }}
+                      className={`relative inline-flex h-6 w-11 shrink-0 items-center rounded-full transition-colors focus:outline-none ${taxEnabled ? 'bg-slate-blue' : 'bg-gray-300'}`}
+                      aria-pressed={taxEnabled}
+                      aria-label="Toggle tax"
+                    >
+                      <span className={`inline-block h-4 w-4 transform rounded-full bg-white shadow transition-transform ${taxEnabled ? 'translate-x-5' : 'translate-x-1'}`} />
+                    </button>
                   </div>
+                  {taxEnabled && (
+                    <div className="flex items-center gap-2 mt-3">
+                      <div className="relative">
+                        <input
+                          type="number"
+                          min="0"
+                          step="0.01"
+                          max="100"
+                          value={taxRate || ''}
+                          onChange={(e) => setTaxRate(parseFloat(e.target.value) || 0)}
+                          className="w-28 border border-gray-300 rounded-lg pl-3 pr-7 py-1.5 text-sm focus:outline-none focus:ring-2 focus:ring-slate-blue focus:ring-offset-1"
+                          aria-label="Tax rate"
+                        />
+                        <span className="absolute right-2 top-1/2 -translate-y-1/2 text-gray-500 text-sm">%</span>
+                      </div>
+                    </div>
+                  )}
                 </div>
-              )}
-            </div>
+              </div>
+            )}
           </div>
         )}
       </div>
 
-      {/* Terms toggle + textarea */}
-      <div>
-        <div className="flex items-center gap-3 mb-3">
-          <label className="flex items-center gap-2 cursor-pointer">
-            <input
-              type="checkbox"
-              checked={showTerms}
-              onChange={(e) => setShowTerms(e.target.checked)}
-              disabled={!!isReadOnly}
-              className="rounded border-gray-300 text-slate-blue focus:ring-slate-blue"
-            />
-            <span className="text-sm font-medium text-gray-700">Include terms & conditions</span>
-          </label>
-          {!isReadOnly && (
-            <div className="flex items-center gap-3 ml-auto">
-              <button
-                type="button"
-                onClick={() => setShowSavedTerms(true)}
-                className="inline-flex items-center gap-1 text-xs text-slate-blue hover:text-slate-blue/80 transition-colors"
-              >
-                <Icon name="FaSave" size={11} />
-                Import saved terms
-              </button>
-              <button
-                type="button"
-                onClick={() => setShowSaveTerms(true)}
-                disabled={!termsContent.trim()}
-                className="inline-flex items-center gap-1 text-xs text-slate-blue hover:text-slate-blue/80 transition-colors disabled:opacity-40 disabled:cursor-not-allowed"
-              >
-                <Icon name="FaBookmark" size={11} />
-                Save to library
-              </button>
-            </div>
-          )}
+      {/* Terms & conditions toggle card */}
+      <div className="rounded-lg border border-gray-200 bg-gray-50 p-4 sm:p-5">
+        <div className="flex items-start justify-between">
+          <div>
+            <h3 className="text-sm font-semibold text-gray-900">Terms & conditions</h3>
+            <p className="text-xs text-gray-500 mt-0.5">Include terms and conditions at the end of the contract.</p>
+          </div>
+          <button
+            type="button"
+            onClick={() => setShowTerms(!showTerms)}
+            disabled={!!isReadOnly}
+            className={`relative inline-flex h-6 w-11 shrink-0 items-center rounded-full transition-colors focus:outline-none disabled:opacity-50 ${showTerms ? 'bg-slate-blue' : 'bg-gray-300'}`}
+            aria-pressed={showTerms}
+            aria-label="Toggle terms and conditions"
+          >
+            <span className={`inline-block h-4 w-4 transform rounded-full bg-white shadow transition-transform ${showTerms ? 'translate-x-5' : 'translate-x-1'}`} />
+          </button>
         </div>
         {showTerms && (
-          <textarea
-            value={termsContent}
-            onChange={(e) => setTermsContent(e.target.value)}
-            placeholder="Enter your terms and conditions..."
-            rows={6}
-            disabled={!!isReadOnly}
-            className="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-slate-blue focus:ring-offset-1 resize-y disabled:bg-gray-100"
-            aria-label="Terms and conditions"
-          />
+          <div className="mt-4 space-y-3">
+            {!isReadOnly && (
+              <div className="flex items-center gap-3">
+                <button
+                  type="button"
+                  onClick={() => setShowSavedTerms(true)}
+                  className="inline-flex items-center gap-1 text-xs text-slate-blue hover:text-slate-blue/80 transition-colors"
+                >
+                  <Icon name="FaSave" size={11} />
+                  Import saved terms
+                </button>
+                <button
+                  type="button"
+                  onClick={() => setShowSaveTerms(true)}
+                  disabled={!termsContent.trim()}
+                  className="inline-flex items-center gap-1 text-xs text-slate-blue hover:text-slate-blue/80 transition-colors disabled:opacity-40 disabled:cursor-not-allowed"
+                >
+                  <Icon name="FaBookmark" size={11} />
+                  Save to library
+                </button>
+              </div>
+            )}
+            <textarea
+              value={termsContent}
+              onChange={(e) => setTermsContent(e.target.value)}
+              placeholder="Enter your terms and conditions..."
+              rows={6}
+              disabled={!!isReadOnly}
+              className="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-slate-blue focus:ring-offset-1 resize-y disabled:bg-gray-100"
+              aria-label="Terms and conditions"
+            />
+          </div>
         )}
       </div>
 
@@ -901,22 +926,25 @@ export function ProposalEditor({ proposal, mode, basePath, defaultIsTemplate = f
         </div>
       )}
 
-      {/* Require client signature toggle — hidden for templates */}
+      {/* Require client signature toggle card — hidden for templates */}
       {!isTemplate && (
-        <div>
-          <label className="flex items-center gap-2 cursor-pointer">
-            <input
-              type="checkbox"
-              checked={requireSignature}
-              onChange={(e) => setRequireSignature(e.target.checked)}
+        <div className="rounded-lg border border-gray-200 bg-gray-50 p-4 sm:p-5">
+          <div className="flex items-start justify-between">
+            <div>
+              <h3 className="text-sm font-semibold text-gray-900">Require client signature</h3>
+              <p className="text-xs text-gray-500 mt-0.5">When disabled, the client can view the contract but won&apos;t be asked to sign.</p>
+            </div>
+            <button
+              type="button"
+              onClick={() => setRequireSignature(!requireSignature)}
               disabled={!!isReadOnly}
-              className="rounded border-gray-300 text-slate-blue focus:ring-slate-blue"
-            />
-            <span className="text-sm font-medium text-gray-700">Require client signature</span>
-          </label>
-          <p className="text-xs text-gray-500 mt-1 ml-6">
-            When disabled, the client can view the contract but won&apos;t be asked to sign.
-          </p>
+              className={`relative inline-flex h-6 w-11 shrink-0 items-center rounded-full transition-colors focus:outline-none disabled:opacity-50 ${requireSignature ? 'bg-slate-blue' : 'bg-gray-300'}`}
+              aria-pressed={requireSignature}
+              aria-label="Toggle require client signature"
+            >
+              <span className={`inline-block h-4 w-4 transform rounded-full bg-white shadow transition-transform ${requireSignature ? 'translate-x-5' : 'translate-x-1'}`} />
+            </button>
+          </div>
         </div>
       )}
 
