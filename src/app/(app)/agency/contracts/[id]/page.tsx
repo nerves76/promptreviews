@@ -1,6 +1,6 @@
 'use client';
 
-import { use } from 'react';
+import { use, useState } from 'react';
 import PageCard, { PageCardHeader } from '@/app/(app)/components/PageCard';
 import Icon from '@/components/Icon';
 import { useProposal } from '@/features/proposals/hooks/useProposal';
@@ -9,6 +9,7 @@ import { ProposalEditor } from '@/features/proposals/components/ProposalEditor';
 export default function EditContractPage({ params }: { params: Promise<{ id: string }> }) {
   const { id } = use(params);
   const { proposal, loading, error } = useProposal(id);
+  const [headerActions, setHeaderActions] = useState<React.ReactNode>(null);
 
   if (loading) {
     return (
@@ -36,8 +37,9 @@ export default function EditContractPage({ params }: { params: Promise<{ id: str
       <PageCardHeader
         title={proposal.is_template ? `Edit template: ${proposal.title}` : `Edit: ${proposal.title}`}
         description={proposal.is_template ? 'Update your template details' : 'Update your contract details'}
+        actions={headerActions}
       />
-      <ProposalEditor proposal={proposal} mode="edit" basePath="/agency/contracts" />
+      <ProposalEditor proposal={proposal} mode="edit" basePath="/agency/contracts" renderActions={setHeaderActions} />
     </PageCard>
   );
 }

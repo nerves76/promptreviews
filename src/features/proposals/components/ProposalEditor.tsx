@@ -26,9 +26,11 @@ interface ProposalEditorProps {
   mode: 'create' | 'edit';
   basePath: string;
   defaultIsTemplate?: boolean;
+  /** Called with the action buttons so the parent can render them (e.g. in PageCardHeader). When set, buttons are NOT rendered inside the editor. */
+  renderActions?: (buttons: React.ReactNode) => void;
 }
 
-export function ProposalEditor({ proposal, mode, basePath, defaultIsTemplate = false }: ProposalEditorProps) {
+export function ProposalEditor({ proposal, mode, basePath, defaultIsTemplate = false, renderActions }: ProposalEditorProps) {
   const router = useRouter();
   const { business } = useBusinessData();
   const isTemplate = defaultIsTemplate || (mode === 'edit' && !!proposal?.is_template);
@@ -340,6 +342,11 @@ export function ProposalEditor({ proposal, mode, basePath, defaultIsTemplate = f
     </div>
   ) : null;
 
+  // Push action buttons to parent (e.g. PageCardHeader) when renderActions is provided
+  useEffect(() => {
+    if (renderActions) renderActions(actionButtons);
+  }, [isReadOnly, saving, mode, isTemplate]); // eslint-disable-line react-hooks/exhaustive-deps
+
   return (
     <div className="space-y-6">
       {error && (
@@ -354,8 +361,8 @@ export function ProposalEditor({ proposal, mode, basePath, defaultIsTemplate = f
         </div>
       )}
 
-      {/* Top actions */}
-      {actionButtons}
+      {/* Top actions — only render inline when parent doesn't handle them */}
+      {!renderActions && actionButtons}
 
       {/* Status selector (edit mode only, not for templates) */}
       {mode === 'edit' && proposal && !isTemplate && (
