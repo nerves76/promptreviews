@@ -190,7 +190,7 @@ export function BrandedProposalView({
 
   return (
     <div
-      className={`${contained ? '' : 'min-h-screen'} px-4`}
+      className={`${contained ? '' : 'min-h-screen'} px-4 branded-proposal-bg`}
       style={{
         background: getBackground(styleConfig),
         fontFamily: styleConfig.primaryFont,
