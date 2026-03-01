@@ -623,6 +623,7 @@ model accounts {
   review_share_events                                                 review_share_events[]
   review_share_images                                                 review_share_images[]
   rss_feed_sources                                                    rss_feed_sources[]
+  saved_signatures                                                    saved_signatures[]
   selected_gbp_locations                                              selected_gbp_locations[]
   sentiment_analysis_runs                                             sentiment_analysis_runs[]
   sidebar_favorites                                                   sidebar_favorites[]
@@ -4732,9 +4733,11 @@ model proposals {
   show_sow_number     Boolean               @default(true)
   reminder_sent_at    DateTime?             @db.Timestamptz(6)
   pricing_type        String                @default("fixed")
+  sender_signature_id String?               @db.Uuid
   proposal_signatures proposal_signatures[]
   accounts            accounts              @relation(fields: [account_id], references: [id], onDelete: Cascade, onUpdate: NoAction)
   contacts            contacts?             @relation(fields: [contact_id], references: [id], onUpdate: NoAction)
+  saved_signatures    saved_signatures?     @relation(fields: [sender_signature_id], references: [id], onUpdate: NoAction)
 
   @@index([account_id], map: "idx_proposals_account_id")
   @@index([account_id, status], map: "idx_proposals_account_status")
@@ -4755,6 +4758,21 @@ model proposal_terms_templates {
 
   @@unique([account_id, name], map: "idx_proposal_terms_templates_account_name")
   @@index([account_id], map: "idx_proposal_terms_templates_account_id")
+  @@schema("public")
+}
+
+/// This model contains row level security and requires additional setup for migrations. Visit https://pris.ly/d/row-level-security for more info.
+model saved_signatures {
+  id                   String      @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  account_id           String      @db.Uuid
+  name                 String
+  signature_image_path String
+  created_at           DateTime    @default(now()) @db.Timestamptz(6)
+  updated_at           DateTime    @default(now()) @db.Timestamptz(6)
+  proposals            proposals[]
+  accounts             accounts    @relation(fields: [account_id], references: [id], onDelete: Cascade, onUpdate: NoAction)
+
+  @@index([account_id], map: "idx_saved_signatures_account_id")
   @@schema("public")
 }
 

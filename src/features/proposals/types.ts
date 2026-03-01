@@ -128,6 +128,7 @@ export interface Proposal {
   viewed_at?: string | null;
   accepted_at?: string | null;
   declined_at?: string | null;
+  sender_signature_id?: string | null;
   created_at: string;
   updated_at: string;
   // Joined data
@@ -158,6 +159,18 @@ export interface ProposalTermsTemplate {
   updated_at: string;
 }
 
+// --- Saved Signatures ---
+
+export interface SavedSignature {
+  id: string;
+  account_id: string;
+  name: string;
+  signature_image_path: string;
+  signature_image_url?: string; // signed URL from API
+  created_at: string;
+  updated_at: string;
+}
+
 // --- API Request Types ---
 
 export interface CreateProposalRequest {
@@ -176,6 +189,7 @@ export interface CreateProposalRequest {
   custom_sections?: ProposalCustomSection[];
   line_items?: ProposalLineItem[];
   show_sow_number?: boolean;
+  sender_signature_id?: string | null;
   is_template?: boolean;
   template_name?: string;
 }

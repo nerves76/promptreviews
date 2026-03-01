@@ -5,7 +5,7 @@ import { useRouter } from 'next/navigation';
 import { apiClient } from '@/utils/apiClient';
 import { Button } from '@/app/(app)/components/ui/button';
 import Icon from '@/components/Icon';
-import { Proposal, ProposalLineItem, ProposalCustomSection, ProposalStatus, PricingType, USER_SETTABLE_STATUSES, PROPOSAL_STATUS_LABELS, PRICING_TYPE_LABELS } from '../types';
+import { Proposal, ProposalLineItem, ProposalCustomSection, ProposalStatus, PricingType, USER_SETTABLE_STATUSES, PROPOSAL_STATUS_LABELS, PRICING_TYPE_LABELS, SavedSignature } from '../types';
 import { formatSowNumber } from '../sowHelpers';
 import { useBusinessData } from '@/auth/hooks/granularAuthHooks';
 import { ProposalLineItemsEditor } from './ProposalLineItemsEditor';
@@ -75,6 +75,11 @@ export function ProposalEditor({ proposal, mode, basePath, defaultIsTemplate = f
   const [showSavedTerms, setShowSavedTerms] = useState(false);
   const [showSaveTerms, setShowSaveTerms] = useState(false);
 
+  // Sender signature state
+  const [senderSignatureId, setSenderSignatureId] = useState<string | null>(proposal?.sender_signature_id || null);
+  const [savedSignatures, setSavedSignatures] = useState<SavedSignature[]>([]);
+  const [signaturesLoading, setSignaturesLoading] = useState(true);
+
   // Fetch SOW prefix on mount
   useEffect(() => {
     async function fetchSowPrefix() {
@@ -89,6 +94,21 @@ export function ProposalEditor({ proposal, mode, basePath, defaultIsTemplate = f
       }
     }
     fetchSowPrefix();
+  }, []);
+
+  // Fetch saved signatures on mount
+  useEffect(() => {
+    async function fetchSignatures() {
+      try {
+        const data = await apiClient.get<{ signatures: SavedSignature[] }>('/proposals/saved-signatures');
+        setSavedSignatures(data.signatures || []);
+      } catch {
+        // Non-critical
+      } finally {
+        setSignaturesLoading(false);
+      }
+    }
+    fetchSignatures();
   }, []);
 
   // Sync when proposal loads (edit mode)
@@ -110,6 +130,7 @@ export function ProposalEditor({ proposal, mode, basePath, defaultIsTemplate = f
       setCustomSections(Array.isArray(proposal.custom_sections) ? proposal.custom_sections : []);
       setLineItems(Array.isArray(proposal.line_items) ? proposal.line_items : []);
       setStatus(proposal.status || 'draft');
+      setSenderSignatureId(proposal.sender_signature_id || null);
     }
   }, [proposal, mode]);
 
@@ -225,6 +246,7 @@ export function ProposalEditor({ proposal, mode, basePath, defaultIsTemplate = f
         terms_content: termsContent || null,
         custom_sections: customSections,
         line_items: lineItems,
+        sender_signature_id: senderSignatureId,
       };
 
       if (mode === 'create') {
@@ -688,6 +710,53 @@ export function ProposalEditor({ proposal, mode, basePath, defaultIsTemplate = f
           />
         )}
       </div>
+
+      {/* Sender signature */}
+      {!isTemplate && (
+        <div>
+          <label htmlFor="sender-signature" className="block text-sm font-medium text-gray-700 mb-1">
+            Sender signature
+          </label>
+          {signaturesLoading ? (
+            <p className="text-sm text-gray-500">Loading signatures...</p>
+          ) : savedSignatures.length === 0 ? (
+            <p className="text-sm text-gray-500">
+              No saved signatures.{' '}
+              <a href="/agency/contracts" className="text-slate-blue hover:text-slate-blue/80 underline">
+                Create one
+              </a>{' '}
+              in the Signatures tab.
+            </p>
+          ) : (
+            <>
+              <select
+                id="sender-signature"
+                value={senderSignatureId || ''}
+                onChange={(e) => setSenderSignatureId(e.target.value || null)}
+                disabled={!!isReadOnly}
+                className="border border-gray-300 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-slate-blue focus:ring-offset-1 w-full sm:w-64"
+              >
+                <option value="">None</option>
+                {savedSignatures.map((sig) => (
+                  <option key={sig.id} value={sig.id}>{sig.name}</option>
+                ))}
+              </select>
+              {senderSignatureId && (() => {
+                const selected = savedSignatures.find((s) => s.id === senderSignatureId);
+                return selected?.signature_image_url ? (
+                  <div className="mt-2">
+                    <img
+                      src={selected.signature_image_url}
+                      alt={`Signature by ${selected.name}`}
+                      className="h-12 max-w-[200px] object-contain rounded bg-gray-50 border border-gray-200 p-1"
+                    />
+                  </div>
+                ) : null;
+              })()}
+            </>
+          )}
+        </div>
+      )}
 
       {/* Terms template modals */}
       <SavedTermsModal

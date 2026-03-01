@@ -13,8 +13,8 @@ export default function BodyWrapper({
   // Check if this is a demo/embed page that should have transparent background
   const isEmbed = pathname.startsWith('/demo/') || pathname.startsWith('/embed/') || pathname === '/infographic/embed' || pathname === '/infographic-embed';
 
-  // Check if this is a prompt page that has its own custom gradient
-  const isPromptPage = pathname.startsWith('/r/');
+  // Check if this is a page that has its own custom gradient/background
+  const isPromptPage = pathname.startsWith('/r/') || pathname.startsWith('/sow/');
 
   useEffect(() => {
     // Only modify styles, not classes to avoid hydration issues
@@ -43,7 +43,7 @@ export default function BodyWrapper({
     return () => {
       // Clean up any inline styles when navigating away
       if (isPromptPage) {
-        // Reset to default app gradient when leaving prompt page
+        // Reset to default app gradient when leaving custom-background page
         document.body.style.removeProperty('background');
         document.body.style.removeProperty('background-attachment');
         document.documentElement.style.removeProperty('background-color');

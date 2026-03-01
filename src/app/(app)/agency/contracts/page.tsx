@@ -8,19 +8,21 @@ import { Modal } from '@/app/(app)/components/ui/modal';
 import { ConfirmDialog } from '@/app/(app)/components/ui/confirm-dialog';
 import Icon from '@/components/Icon';
 import { useProposals } from '@/features/proposals/hooks/useProposals';
-import { Proposal, ProposalStatus, ProposalSectionTemplate, ProposalTermsTemplate } from '@/features/proposals/types';
+import { Proposal, ProposalStatus, ProposalSectionTemplate, ProposalTermsTemplate, SavedSignature } from '@/features/proposals/types';
 import { ProposalStatusBadge } from '@/features/proposals/components/ProposalStatusBadge';
+import { SignatureCanvas } from '@/features/proposals/components/SignatureCanvas';
 import { formatSowNumber } from '@/features/proposals/sowHelpers';
 import { apiClient } from '@/utils/apiClient';
 import { useToast, ToastContainer } from '@/app/(app)/components/reviews/Toast';
 
-type SubTab = 'contracts' | 'templates' | 'sections' | 'terms';
+type SubTab = 'contracts' | 'templates' | 'sections' | 'terms' | 'signatures';
 
 const SUB_TABS: { id: SubTab; label: string }[] = [
   { id: 'contracts', label: 'Contracts' },
   { id: 'templates', label: 'Templates' },
   { id: 'sections', label: 'Sections' },
   { id: 'terms', label: 'Terms' },
+  { id: 'signatures', label: 'Signatures' },
 ];
 
 const STATUS_OPTIONS: { value: ProposalStatus | 'all'; label: string }[] = [
@@ -67,6 +69,16 @@ export default function ContractsPage() {
   const [showNewTerms, setShowNewTerms] = useState(false);
   const [newTerms, setNewTerms] = useState({ name: '', body: '' });
   const [newTermsSaving, setNewTermsSaving] = useState(false);
+
+  // Signatures tab state
+  const [signatures, setSignatures] = useState<SavedSignature[]>([]);
+  const [signaturesLoading, setSignaturesLoading] = useState(false);
+  const [deletingSignature, setDeletingSignature] = useState<SavedSignature | null>(null);
+  const [signatureDeleting, setSignatureDeleting] = useState(false);
+  const [showNewSignature, setShowNewSignature] = useState(false);
+  const [newSignatureName, setNewSignatureName] = useState('');
+  const [newSignatureImage, setNewSignatureImage] = useState<string | null>(null);
+  const [newSignatureSaving, setNewSignatureSaving] = useState(false);
 
   // New contract modal state
   const [showNewContractModal, setShowNewContractModal] = useState(false);
@@ -148,11 +160,27 @@ export default function ContractsPage() {
     }
   }, []);
 
+  // Fetch signatures when tab is active
+  const fetchSignatures = useCallback(async () => {
+    setSignaturesLoading(true);
+    try {
+      const data = await apiClient.get<{ signatures: SavedSignature[] }>(
+        '/proposals/saved-signatures'
+      );
+      setSignatures(data.signatures);
+    } catch {
+      showError('Failed to load signatures');
+    } finally {
+      setSignaturesLoading(false);
+    }
+  }, []);
+
   useEffect(() => {
     if (activeTab === 'templates') fetchTemplates();
     if (activeTab === 'sections') fetchSections();
     if (activeTab === 'terms') fetchTerms();
-  }, [activeTab, fetchTemplates, fetchSections, fetchTerms]);
+    if (activeTab === 'signatures') fetchSignatures();
+  }, [activeTab, fetchTemplates, fetchSections, fetchTerms, fetchSignatures]);
 
   // Open the "New contract" modal and fetch templates if needed
   const handleNewContract = useCallback(() => {
@@ -302,6 +330,43 @@ export default function ContractsPage() {
     }
   };
 
+  // --- Signatures handlers ---
+
+  const handleDeleteSignature = async () => {
+    if (!deletingSignature) return;
+    setSignatureDeleting(true);
+    try {
+      await apiClient.delete(`/proposals/saved-signatures/${deletingSignature.id}`);
+      setSignatures((prev) => prev.filter((s) => s.id !== deletingSignature.id));
+      success('Signature deleted');
+    } catch {
+      showError('Failed to delete signature');
+    } finally {
+      setSignatureDeleting(false);
+      setDeletingSignature(null);
+    }
+  };
+
+  const handleCreateSignature = async () => {
+    if (!newSignatureName.trim() || !newSignatureImage) return;
+    setNewSignatureSaving(true);
+    try {
+      const data = await apiClient.post<SavedSignature>('/proposals/saved-signatures', {
+        name: newSignatureName.trim(),
+        signature_image: newSignatureImage,
+      });
+      setSignatures((prev) => [data, ...prev]);
+      setNewSignatureName('');
+      setNewSignatureImage(null);
+      setShowNewSignature(false);
+      success('Signature saved');
+    } catch {
+      showError('Failed to save signature');
+    } finally {
+      setNewSignatureSaving(false);
+    }
+  };
+
   return (
     <PageCard icon={<Icon name="FaBriefcase" size={24} className="text-slate-blue" />}>
       <PageCardHeader
@@ -319,10 +384,16 @@ export default function ContractsPage() {
                         setNewSection({ name: '', title: '', body: '' });
                         setShowNewSection(true);
                       }
-                    : () => {
-                        setNewTerms({ name: '', body: '' });
-                        setShowNewTerms(true);
-                      }
+                    : activeTab === 'terms'
+                      ? () => {
+                          setNewTerms({ name: '', body: '' });
+                          setShowNewTerms(true);
+                        }
+                      : () => {
+                          setNewSignatureName('');
+                          setNewSignatureImage(null);
+                          setShowNewSignature(true);
+                        }
             }
             className="whitespace-nowrap"
           >
@@ -333,7 +404,9 @@ export default function ContractsPage() {
                 ? 'New template'
                 : activeTab === 'sections'
                   ? 'New section'
-                  : 'New terms'}
+                  : activeTab === 'terms'
+                    ? 'New terms'
+                    : 'New signature'}
           </Button>
         }
       />
@@ -446,7 +519,7 @@ export default function ContractsPage() {
                               Edit
                             </button>
                             <button
-                              onClick={() => router.push(`/sow-preview/${proposal.id}`)}
+                              onClick={() => router.push(`/sow/${proposal.token}`)}
                               className="text-slate-blue hover:text-slate-blue/80 underline text-sm"
                             >
                               Preview
@@ -665,6 +738,60 @@ export default function ContractsPage() {
         </>
       )}
 
+      {/* ===== SIGNATURES TAB ===== */}
+      {activeTab === 'signatures' && (
+        <>
+          {signaturesLoading ? (
+            <div className="text-center py-12 text-gray-500">
+              <Icon name="FaSpinner" size={20} className="animate-spin mx-auto mb-2" />
+              <p>Loading signatures...</p>
+            </div>
+          ) : signatures.length === 0 ? (
+            <div className="text-center py-12 text-gray-500">
+              <Icon name="FaEdit" size={32} className="mx-auto mb-3 text-gray-300" />
+              <p className="mb-2">No saved signatures yet</p>
+              <p className="text-sm text-gray-500">
+                Save your signature to attach it to contracts as the sender.
+              </p>
+            </div>
+          ) : (
+            <div className="space-y-3">
+              {signatures.map((sig) => (
+                <div
+                  key={sig.id}
+                  className="flex items-center gap-4 border border-gray-200 rounded-lg p-4 hover:bg-gray-50 transition-colors"
+                >
+                  {sig.signature_image_url && (
+                    <img
+                      src={sig.signature_image_url}
+                      alt={`Signature by ${sig.name}`}
+                      className="h-12 max-w-[160px] object-contain rounded bg-white border border-gray-100"
+                    />
+                  )}
+                  <div className="flex-1 min-w-0">
+                    <p className="text-sm font-medium text-gray-900">{sig.name}</p>
+                    <p className="text-xs text-gray-500 mt-0.5">
+                      {new Date(sig.created_at).toLocaleDateString()}
+                    </p>
+                  </div>
+                  <div className="flex items-center gap-2 shrink-0">
+                    <button
+                      type="button"
+                      onClick={() => setDeletingSignature(sig)}
+                      className="inline-flex items-center justify-center p-2 min-h-[36px] min-w-[36px] bg-red-500/20 text-red-800 rounded hover:bg-red-500/30 text-sm shadow border border-white/30"
+                      title="Delete signature"
+                      aria-label={`Delete signature "${sig.name}"`}
+                    >
+                      <Icon name="FaTrash" size={14} />
+                    </button>
+                  </div>
+                </div>
+              ))}
+            </div>
+          )}
+        </>
+      )}
+
       {/* Confirm dialogs */}
       <ConfirmDialog
         isOpen={!!deletingTemplate}
@@ -826,6 +953,67 @@ export default function ContractsPage() {
         </Modal.Footer>
       </Modal>
 
+      <ConfirmDialog
+        isOpen={!!deletingSignature}
+        onClose={() => setDeletingSignature(null)}
+        onConfirm={handleDeleteSignature}
+        title="Delete signature"
+        message={`Are you sure you want to delete "${deletingSignature?.name}"? Contracts using this signature will no longer show it.`}
+        confirmLabel="Delete"
+        confirmVariant="danger"
+        isLoading={signatureDeleting}
+      />
+
+      {/* New signature modal */}
+      <Modal
+        isOpen={showNewSignature}
+        onClose={() => setShowNewSignature(false)}
+        title="New signature"
+        size="md"
+      >
+        <Modal.Body>
+          <div>
+            <label htmlFor="new-signature-name" className="block text-sm font-medium text-gray-700 mb-1">
+              Printed name
+            </label>
+            <input
+              id="new-signature-name"
+              type="text"
+              value={newSignatureName}
+              onChange={(e) => setNewSignatureName(e.target.value)}
+              placeholder="e.g. John Smith"
+              className="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-slate-blue focus:ring-offset-1"
+              autoFocus
+            />
+            <p className="mt-1 text-xs text-gray-500">Your name as it appears on the contract.</p>
+          </div>
+          <div>
+            <label className="block text-sm font-medium text-gray-700 mb-2">
+              Draw your signature
+            </label>
+            <SignatureCanvas onSignatureChange={setNewSignatureImage} />
+          </div>
+        </Modal.Body>
+        <Modal.Footer>
+          <Button variant="secondary" onClick={() => setShowNewSignature(false)}>
+            Cancel
+          </Button>
+          <Button
+            onClick={handleCreateSignature}
+            disabled={newSignatureSaving || !newSignatureName.trim() || !newSignatureImage}
+          >
+            {newSignatureSaving ? (
+              <>
+                <Icon name="FaSpinner" size={14} className="animate-spin mr-2" />
+                Saving...
+              </>
+            ) : (
+              'Save signature'
+            )}
+          </Button>
+        </Modal.Footer>
+      </Modal>
+
       {/* New contract modal — pick template or start from scratch */}
       <Modal
         isOpen={showNewContractModal}
@@ -958,22 +1146,12 @@ export default function ContractsPage() {
                 </button>
 
                 <a
-                  href={`/sow-preview/${postSaveData.id}`}
+                  href={`/sow/${postSaveData.token}`}
                   target="_blank"
                   rel="noopener noreferrer"
                   className="w-full flex items-center justify-between p-3 bg-amber-500/30 hover:bg-amber-500/50 backdrop-blur-sm rounded-lg border border-amber-300/30 transition-colors cursor-pointer"
                 >
                   <span className="text-sm font-medium text-white">Preview contract</span>
-                  <span className="text-white text-sm font-medium">Open</span>
-                </a>
-
-                <a
-                  href={`/sow/${postSaveData.token}`}
-                  target="_blank"
-                  rel="noopener noreferrer"
-                  className="w-full flex items-center justify-between p-3 bg-blue-500/30 hover:bg-blue-500/50 backdrop-blur-sm rounded-lg border border-blue-300/30 transition-colors cursor-pointer"
-                >
-                  <span className="text-sm font-medium text-white">View client page</span>
                   <span className="text-white text-sm font-medium">Open</span>
                 </a>
               </div>

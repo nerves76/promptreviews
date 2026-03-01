@@ -57,6 +57,8 @@ interface BrandedProposalViewProps {
   proposal: Proposal;
   styleConfig: StyleConfig;
   sowPrefix?: string | null;
+  /** Sender's saved signature to display as "Authorized by" */
+  senderSignature?: { name: string; imageUrl: string } | null;
   /** Content rendered after the last proposal card (e.g. signature section in its own card) */
   children?: React.ReactNode;
   /** If true, renders as a contained block (no min-h-screen). Used for dashboard embedding. */
@@ -73,6 +75,7 @@ export function BrandedProposalView({
   proposal,
   styleConfig,
   sowPrefix,
+  senderSignature,
   children,
   contained = false,
 }: BrandedProposalViewProps) {
@@ -142,11 +145,14 @@ export function BrandedProposalView({
     if (proposal.show_terms && proposal.terms_content) {
       items.push({ id: 'proposal-terms', label: 'Terms' });
     }
+    if (senderSignature) {
+      items.push({ id: 'proposal-sender-signature', label: 'Authorized by' });
+    }
     if (children) {
       items.push({ id: 'proposal-signature', label: 'Signature' });
     }
     return items;
-  }, [contained, sections, proposal.show_pricing, proposal.show_terms, proposal.terms_content, lineItems.length, children]);
+  }, [contained, sections, proposal.show_pricing, proposal.show_terms, proposal.terms_content, lineItems.length, senderSignature, children]);
 
   const showNav = navItems.length >= 2;
 
@@ -524,6 +530,19 @@ export function BrandedProposalView({
             <div className="text-sm whitespace-pre-wrap leading-relaxed" style={{ color: mutedColor }}>
               {proposal.terms_content}
             </div>
+          </div>
+        )}
+
+        {/* Sender signature card (Authorized by) */}
+        {senderSignature && (
+          <div id="proposal-sender-signature" className={`${cardClasses} mt-6 scroll-mt-16`} style={cardStyle}>
+            <h3 className="text-lg font-semibold mb-3" style={{ color }}>Authorized by</h3>
+            <img
+              src={senderSignature.imageUrl}
+              alt={`Signature by ${senderSignature.name}`}
+              className="max-h-16 rounded"
+            />
+            <p className="text-sm font-medium mt-2" style={{ color }}>{senderSignature.name}</p>
           </div>
         )}
 

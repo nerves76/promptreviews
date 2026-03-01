@@ -139,6 +139,7 @@ export async function POST(request: NextRequest) {
         is_template: isTemplate,
         template_name: body.template_name?.trim() || null,
         sow_number: sowNumber,
+        sender_signature_id: body.sender_signature_id || null,
       })
       .select()
       .single();

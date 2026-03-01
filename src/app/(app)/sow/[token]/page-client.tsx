@@ -1,19 +1,24 @@
 'use client';
 
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
+import { useRouter } from 'next/navigation';
 import { applyCardTransparency } from '@/utils/colorUtils';
 import Icon from '@/components/Icon';
 import { BrandedProposalView, StyleConfig } from '@/features/proposals/components/BrandedProposalView';
 import { SignatureCanvas } from '@/features/proposals/components/SignatureCanvas';
 import { Proposal } from '@/features/proposals/types';
 import { exportProposalToPdf } from '@/features/proposals/utils/pdfExport';
+import { apiClient } from '@/utils/apiClient';
 
 interface ProposalPageClientProps {
   proposal: Proposal;
-  signature: { signer_name: string; signer_email: string; signed_at: string; signature_image_url?: string | null } | null;
+  signature: { signer_name: string; signer_email: string; signed_at: string; signature_image_url?: string | null; document_hash?: string | null } | null;
   styleConfig: StyleConfig;
   token: string;
   sowPrefix?: string | null;
+  senderSignature?: { name: string; imageUrl: string } | null;
+  isOwner?: boolean;
+  proposalId?: string | null;
 }
 
 function getCardBorderStyle(config: StyleConfig) {
@@ -26,7 +31,31 @@ function getCardBorderStyle(config: StyleConfig) {
   return `${width}px solid rgba(${r}, ${g}, ${b}, ${config.cardBorderTransparency ?? 0.5})`;
 }
 
-export default function ProposalPageClient({ proposal, signature, styleConfig, token, sowPrefix }: ProposalPageClientProps) {
+/**
+ * Compute SHA256 hash of proposal content using Web Crypto API.
+ * Must match the fields used in /api/proposals/sign/route.ts
+ */
+async function computeDocumentHash(proposal: { title: string; custom_sections: any; line_items: any; terms_content?: string | null; client_first_name?: string | null; client_last_name?: string | null; client_email?: string | null }): Promise<string> {
+  const content = JSON.stringify({
+    title: proposal.title,
+    custom_sections: proposal.custom_sections,
+    line_items: proposal.line_items,
+    terms_content: proposal.terms_content,
+    client_first_name: proposal.client_first_name,
+    client_last_name: proposal.client_last_name,
+    client_email: proposal.client_email,
+  });
+  const encoder = new TextEncoder();
+  const data = encoder.encode(content);
+  const hashBuffer = await crypto.subtle.digest('SHA-256', data);
+  const hashArray = Array.from(new Uint8Array(hashBuffer));
+  return hashArray.map(b => b.toString(16).padStart(2, '0')).join('');
+}
+
+export default function ProposalPageClient({ proposal, signature, styleConfig, token, sowPrefix, senderSignature, isOwner = false, proposalId }: ProposalPageClientProps) {
+  const router = useRouter();
+
+  // Recipient signing state
   const [signerName, setSignerName] = useState('');
   const [signerEmail, setSignerEmail] = useState('');
   const [signatureImage, setSignatureImage] = useState<string | null>(null);
@@ -35,8 +64,24 @@ export default function ProposalPageClient({ proposal, signature, styleConfig, t
   const [submitError, setSubmitError] = useState<string | null>(null);
   const [signed, setSigned] = useState(!!signature);
 
+  // Owner send state
+  const [sending, setSending] = useState(false);
+  const [sendError, setSendError] = useState<string | null>(null);
+  const [sendSuccess, setSendSuccess] = useState(false);
+
+  // Owner hash verification state
+  const [hashVerified, setHashVerified] = useState<boolean | null>(null);
+
   const cardBg = applyCardTransparency(styleConfig.cardBg, styleConfig.cardTransparency);
   const cardBorder = getCardBorderStyle(styleConfig);
+
+  // Verify document hash for signed contracts (owner view only)
+  useEffect(() => {
+    if (!isOwner || !signature?.document_hash) return;
+    computeDocumentHash(proposal).then(currentHash => {
+      setHashVerified(currentHash === signature.document_hash);
+    }).catch(() => setHashVerified(null));
+  }, [isOwner, signature, proposal]);
 
   // Check if expired
   if (proposal.expiration_date && new Date(proposal.expiration_date) < new Date()) {
@@ -112,160 +157,300 @@ export default function ProposalPageClient({ proposal, signature, styleConfig, t
     }
   };
 
-  const showSignButton = !signed && proposal.status !== 'expired' && proposal.status !== 'declined';
+  const handleSend = async () => {
+    if (!proposalId) return;
+    if (!proposal.client_email) {
+      setSendError('Add a client email address before sending');
+      return;
+    }
+    setSending(true);
+    setSendError(null);
+    try {
+      await apiClient.post(`/proposals/${proposalId}/send`);
+      setSendSuccess(true);
+    } catch (err: any) {
+      setSendError(err.message || 'Failed to send');
+    } finally {
+      setSending(false);
+    }
+  };
+
+  const handleDownloadPdf = () => {
+    exportProposalToPdf('proposal-preview-content', proposal.title.replace(/\s+/g, '_'));
+  };
+
+  const showSignButton = !isOwner && !signed && proposal.status !== 'expired' && proposal.status !== 'declined';
 
   const btnClass = 'flex items-center gap-2 px-4 py-2 rounded-lg shadow-md hover:bg-gray-50 transition-colors w-full bg-white border border-gray-200 text-gray-700 whitespace-nowrap';
 
   return (
     <>
-      {/* Floating action bar */}
-      <div className="fixed right-4 top-4 z-[60] bg-black bg-opacity-20 backdrop-blur-sm rounded-xl p-3 space-y-2">
-        <button
-          type="button"
-          className={btnClass}
-          onClick={() => exportProposalToPdf('proposal-preview-content', proposal.title.replace(/\s+/g, '_'))}
-          aria-label="Download PDF"
-        >
-          <Icon name="FaFileAlt" size={14} />
-          <span className="text-sm font-medium">PDF</span>
-        </button>
-        {showSignButton && (
+      {/* Owner floating action bar — left side */}
+      {isOwner && (
+        <div className="fixed left-4 top-4 z-[60]">
+          <div className="bg-black bg-opacity-20 backdrop-blur-sm rounded-xl p-3 space-y-2">
+            <button
+              onClick={() => router.push(`/agency/contracts/${proposalId}`)}
+              className={btnClass}
+              title="Edit this contract"
+              aria-label="Edit this contract"
+            >
+              <Icon name="FaEdit" size={16} />
+              <span className="hidden sm:inline">Edit</span>
+            </button>
+            <button
+              onClick={handleDownloadPdf}
+              className={btnClass}
+              title="Download as PDF"
+              aria-label="Download as PDF"
+            >
+              <Icon name="FaFileAlt" size={16} />
+              <span className="hidden sm:inline">PDF</span>
+            </button>
+            {['draft', 'sent', 'viewed', 'on_hold'].includes(proposal.status) && (
+              <button
+                onClick={handleSend}
+                disabled={sending}
+                className={btnClass}
+                title="Send to client"
+                aria-label="Send to client"
+              >
+                {sending ? (
+                  <Icon name="FaSpinner" size={16} className="animate-spin" />
+                ) : (
+                  <Icon name="FaEnvelope" size={16} />
+                )}
+                <span className="hidden sm:inline">{sending ? 'Sending...' : 'Send'}</span>
+              </button>
+            )}
+            <button
+              onClick={() => router.push('/agency/contracts')}
+              className={btnClass}
+              title="Back to contracts"
+              aria-label="Back to contracts"
+            >
+              <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M10 19l-7-7m0 0l7-7m-7 7h18" />
+              </svg>
+              <span className="hidden sm:inline">Back</span>
+            </button>
+          </div>
+        </div>
+      )}
+
+      {/* Recipient floating action bar — right side */}
+      {!isOwner && (
+        <div className="fixed right-4 top-4 z-[60] bg-black bg-opacity-20 backdrop-blur-sm rounded-xl p-3 space-y-2">
           <button
             type="button"
             className={btnClass}
-            onClick={() => document.getElementById('proposal-signature')?.scrollIntoView({ behavior: 'smooth', block: 'start' })}
-            aria-label="Scroll to signature"
+            onClick={handleDownloadPdf}
+            aria-label="Download PDF"
           >
-            <Icon name="FaEdit" size={14} />
-            <span className="text-sm font-medium">Sign</span>
+            <Icon name="FaFileAlt" size={14} />
+            <span className="text-sm font-medium">PDF</span>
           </button>
-        )}
-      </div>
+          {showSignButton && (
+            <button
+              type="button"
+              className={btnClass}
+              onClick={() => document.getElementById('proposal-signature')?.scrollIntoView({ behavior: 'smooth', block: 'start' })}
+              aria-label="Scroll to signature"
+            >
+              <Icon name="FaEdit" size={14} />
+              <span className="text-sm font-medium">Sign</span>
+            </button>
+          )}
+        </div>
+      )}
+
+      {/* Owner send error/success toasts — top-right */}
+      {isOwner && (sendError || sendSuccess) && (
+        <div className="fixed right-4 top-4 z-[60]">
+          {sendError && (
+            <div className="bg-red-50 border border-red-200 rounded-lg px-4 py-2 text-sm text-red-700 shadow-md">
+              {sendError}
+            </div>
+          )}
+          {sendSuccess && (
+            <div className="bg-green-50 border border-green-200 rounded-lg px-4 py-2 text-sm text-green-700 shadow-md">
+              Sent to {proposal.client_email}!
+            </div>
+          )}
+        </div>
+      )}
 
       <BrandedProposalView
         proposal={proposal}
         styleConfig={styleConfig}
         sowPrefix={sowPrefix}
+        senderSignature={senderSignature}
       >
-      {/* Signature section */}
-      {signed ? (
-        <div className="mt-8 pt-6 border-t" style={{ borderColor: `${styleConfig.cardText}22` }}>
-          <div className="flex items-center gap-2 mb-2">
-            <Icon name="FaCheckCircle" size={20} className="text-green-500" />
-            <span className="text-lg font-semibold" style={{ color: styleConfig.cardText }}>
-              Accepted
-            </span>
-          </div>
-          <p className="text-sm opacity-70" style={{ color: styleConfig.cardText }}>
-            {signature
-              ? `Signed by ${signature.signer_name} on ${new Date(signature.signed_at).toLocaleDateString('en-US', { year: 'numeric', month: 'long', day: 'numeric' })}`
-              : 'Thank you for signing!'}
-          </p>
-          {signature?.signature_image_url && (
-            <div className="mt-3">
-              <img
-                src={signature.signature_image_url}
-                alt={`Signature by ${signature.signer_name}`}
-                className="max-h-16 rounded"
-              />
-            </div>
-          )}
-        </div>
-      ) : proposal.status !== 'expired' && proposal.status !== 'declined' && (
-        <div className="mt-8 pt-6 border-t" style={{ borderColor: `${styleConfig.cardText}22` }}>
-          <h3 className="text-lg font-semibold mb-4" style={{ color: styleConfig.cardText }}>
-            Sign & accept
-          </h3>
-
-          {submitError && (
-            <div className="mb-4 p-3 bg-red-500/20 border border-red-500/30 rounded-lg text-sm" style={{ color: styleConfig.cardText }}>
-              {submitError}
-            </div>
-          )}
-
-          <div className="space-y-4">
-            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-              <div>
-                <label htmlFor="signer-name" className="block text-sm font-medium mb-1" style={{ color: styleConfig.cardText }}>
-                  Full name <span className="text-red-400">*</span>
-                </label>
-                <input
-                  id="signer-name"
-                  type="text"
-                  value={signerName}
-                  onChange={(e) => setSignerName(e.target.value)}
-                  placeholder="Your full name"
-                  className="w-full rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-400"
-                  style={{
-                    backgroundColor: 'rgba(255, 255, 255, 0.8)',
-                    color: styleConfig.inputTextColor,
-                    border: `1px solid ${styleConfig.cardText}33`,
-                  }}
-                />
-              </div>
-              <div>
-                <label htmlFor="signer-email" className="block text-sm font-medium mb-1" style={{ color: styleConfig.cardText }}>
-                  Email <span className="text-red-400">*</span>
-                </label>
-                <input
-                  id="signer-email"
-                  type="email"
-                  value={signerEmail}
-                  onChange={(e) => setSignerEmail(e.target.value)}
-                  placeholder="your@email.com"
-                  className="w-full rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-400"
-                  style={{
-                    backgroundColor: 'rgba(255, 255, 255, 0.8)',
-                    color: styleConfig.inputTextColor,
-                    border: `1px solid ${styleConfig.cardText}33`,
-                  }}
-                />
-              </div>
-            </div>
-
-            <div>
-              <label className="block text-sm font-medium mb-2" style={{ color: styleConfig.cardText }}>
-                Signature <span className="text-red-400">*</span>
-              </label>
-              <SignatureCanvas
-                onSignatureChange={setSignatureImage}
-                borderColor={`${styleConfig.cardText}33`}
-                textColor={styleConfig.cardText}
-              />
-            </div>
-
-            <label className="flex items-start gap-2 cursor-pointer">
-              <input
-                type="checkbox"
-                checked={acceptedTerms}
-                onChange={(e) => setAcceptedTerms(e.target.checked)}
-                className="mt-0.5 rounded border-gray-300 text-blue-600 focus:ring-blue-500"
-              />
-              <span className="text-sm" style={{ color: styleConfig.cardText }}>
-                I accept this proposal{proposal.show_terms ? ' and the terms & conditions above' : ''}
+        {/* Owner view: signature display with hash verification */}
+        {isOwner && signature && (
+          <div className="mt-8 pt-6 border-t" style={{ borderColor: `${styleConfig.cardText}22` }}>
+            <div className="flex items-center gap-2 mb-2">
+              <Icon name="FaCheckCircle" size={20} className="text-green-500" />
+              <span className="text-lg font-semibold" style={{ color: styleConfig.cardText }}>
+                Signed
               </span>
-            </label>
+            </div>
+            <div className="text-sm opacity-70" style={{ color: styleConfig.cardText }}>
+              <p>
+                Signed by {signature.signer_name} ({signature.signer_email})
+                on {new Date(signature.signed_at).toLocaleDateString('en-US', { year: 'numeric', month: 'long', day: 'numeric' })}
+              </p>
+            </div>
 
-            <button
-              type="button"
-              onClick={handleSign}
-              disabled={submitting}
-              className="w-full py-3 rounded-lg font-semibold text-white transition-colors disabled:opacity-50"
-              style={{ backgroundColor: '#2E4A7D' }}
-            >
-              {submitting ? (
-                <span className="flex items-center justify-center gap-2">
-                  <Icon name="FaSpinner" size={16} className="animate-spin" />
-                  Signing...
-                </span>
-              ) : (
-                'Sign & accept'
-              )}
-            </button>
+            {signature.signature_image_url && (
+              <div className="mt-3">
+                <img
+                  src={signature.signature_image_url}
+                  alt={`Signature by ${signature.signer_name}`}
+                  className="max-h-16 rounded"
+                />
+              </div>
+            )}
+
+            {hashVerified !== null && (
+              <div className="mt-3 pt-3 border-t" style={{ borderColor: `${styleConfig.cardText}22` }}>
+                {hashVerified ? (
+                  <div className="flex items-center gap-1.5 text-xs" style={{ color: styleConfig.cardText }}>
+                    <Icon name="FaShieldAlt" size={12} className="text-green-500" />
+                    <span className="opacity-70">Document verified — content unchanged since signing</span>
+                  </div>
+                ) : (
+                  <div className="flex items-center gap-1.5 text-xs text-red-400">
+                    <Icon name="FaExclamationTriangle" size={12} />
+                    <span>Document modified since signing — content has changed</span>
+                  </div>
+                )}
+              </div>
+            )}
           </div>
-        </div>
-      )}
-    </BrandedProposalView>
+        )}
+
+        {/* Recipient view: signed confirmation or signature form */}
+        {!isOwner && signed && (
+          <div className="mt-8 pt-6 border-t" style={{ borderColor: `${styleConfig.cardText}22` }}>
+            <div className="flex items-center gap-2 mb-2">
+              <Icon name="FaCheckCircle" size={20} className="text-green-500" />
+              <span className="text-lg font-semibold" style={{ color: styleConfig.cardText }}>
+                Accepted
+              </span>
+            </div>
+            <p className="text-sm opacity-70" style={{ color: styleConfig.cardText }}>
+              {signature
+                ? `Signed by ${signature.signer_name} on ${new Date(signature.signed_at).toLocaleDateString('en-US', { year: 'numeric', month: 'long', day: 'numeric' })}`
+                : 'Thank you for signing!'}
+            </p>
+            {signature?.signature_image_url && (
+              <div className="mt-3">
+                <img
+                  src={signature.signature_image_url}
+                  alt={`Signature by ${signature.signer_name}`}
+                  className="max-h-16 rounded"
+                />
+              </div>
+            )}
+          </div>
+        )}
+
+        {!isOwner && !signed && proposal.status !== 'expired' && proposal.status !== 'declined' && (
+          <div className="mt-8 pt-6 border-t" style={{ borderColor: `${styleConfig.cardText}22` }}>
+            <h3 className="text-lg font-semibold mb-4" style={{ color: styleConfig.cardText }}>
+              Sign & accept
+            </h3>
+
+            {submitError && (
+              <div className="mb-4 p-3 bg-red-500/20 border border-red-500/30 rounded-lg text-sm" style={{ color: styleConfig.cardText }}>
+                {submitError}
+              </div>
+            )}
+
+            <div className="space-y-4">
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                <div>
+                  <label htmlFor="signer-name" className="block text-sm font-medium mb-1" style={{ color: styleConfig.cardText }}>
+                    Full name <span className="text-red-400">*</span>
+                  </label>
+                  <input
+                    id="signer-name"
+                    type="text"
+                    value={signerName}
+                    onChange={(e) => setSignerName(e.target.value)}
+                    placeholder="Your full name"
+                    className="w-full rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-400"
+                    style={{
+                      backgroundColor: 'rgba(255, 255, 255, 0.8)',
+                      color: styleConfig.inputTextColor,
+                      border: `1px solid ${styleConfig.cardText}33`,
+                    }}
+                  />
+                </div>
+                <div>
+                  <label htmlFor="signer-email" className="block text-sm font-medium mb-1" style={{ color: styleConfig.cardText }}>
+                    Email <span className="text-red-400">*</span>
+                  </label>
+                  <input
+                    id="signer-email"
+                    type="email"
+                    value={signerEmail}
+                    onChange={(e) => setSignerEmail(e.target.value)}
+                    placeholder="your@email.com"
+                    className="w-full rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-400"
+                    style={{
+                      backgroundColor: 'rgba(255, 255, 255, 0.8)',
+                      color: styleConfig.inputTextColor,
+                      border: `1px solid ${styleConfig.cardText}33`,
+                    }}
+                  />
+                </div>
+              </div>
+
+              <div>
+                <label className="block text-sm font-medium mb-2" style={{ color: styleConfig.cardText }}>
+                  Signature <span className="text-red-400">*</span>
+                </label>
+                <SignatureCanvas
+                  onSignatureChange={setSignatureImage}
+                  borderColor={`${styleConfig.cardText}33`}
+                  textColor={styleConfig.cardText}
+                />
+              </div>
+
+              <label className="flex items-start gap-2 cursor-pointer">
+                <input
+                  type="checkbox"
+                  checked={acceptedTerms}
+                  onChange={(e) => setAcceptedTerms(e.target.checked)}
+                  className="mt-0.5 rounded border-gray-300 text-blue-600 focus:ring-blue-500"
+                />
+                <span className="text-sm" style={{ color: styleConfig.cardText }}>
+                  I accept this proposal{proposal.show_terms ? ' and the terms & conditions above' : ''}
+                </span>
+              </label>
+
+              <button
+                type="button"
+                onClick={handleSign}
+                disabled={submitting}
+                className="w-full py-3 rounded-lg font-semibold text-white transition-colors disabled:opacity-50"
+                style={{ backgroundColor: '#2E4A7D' }}
+              >
+                {submitting ? (
+                  <span className="flex items-center justify-center gap-2">
+                    <Icon name="FaSpinner" size={16} className="animate-spin" />
+                    Signing...
+                  </span>
+                ) : (
+                  'Sign & accept'
+                )}
+              </button>
+            </div>
+          </div>
+        )}
+      </BrandedProposalView>
     </>
   );
 }
