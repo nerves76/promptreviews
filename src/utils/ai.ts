@@ -49,7 +49,11 @@ export function generateReviewPrompt(
   const businessName = businessProfile.business_name || "";
   const yearsInBusiness = businessProfile.years_in_business || "";
   const services = businessProfile.features_or_benefits || "professional services";
-  const companyValues = businessProfile.company_values || "excellence and customer care";
+  // Limit company values to first 5 entries
+  const rawValues = businessProfile.company_values || "excellence and customer care";
+  const companyValues = rawValues.includes("\n")
+    ? rawValues.split("\n").filter((l: string) => l.trim()).slice(0, 5).join("\n")
+    : rawValues;
   const differentiators = businessProfile.differentiators || "personalized approach and attention to detail";
   const industriesServed = businessProfile.industries_served || "";
   const teamFounderInfo = businessProfile.team_founder_info || "";

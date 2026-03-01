@@ -53,7 +53,15 @@ export function extractBrandContext(businessProfile: any): AIBrandContext {
     industry: Array.isArray(businessProfile?.industry) 
       ? businessProfile.industry 
       : businessProfile?.industry ? [businessProfile.industry] : [],
-    companyValues: businessProfile?.company_values?.trim() || undefined,
+    companyValues: (() => {
+      const raw = businessProfile?.company_values?.trim();
+      if (!raw) return undefined;
+      // Limit to first 5 values
+      if (raw.includes("\n")) {
+        return raw.split("\n").filter((l: string) => l.trim()).slice(0, 5).join("\n");
+      }
+      return raw;
+    })(),
     differentiators: businessProfile?.differentiators?.trim() || undefined,
     aiDos: businessProfile?.ai_dos?.trim() || undefined,
     aiDonts: businessProfile?.ai_donts?.trim() || undefined,

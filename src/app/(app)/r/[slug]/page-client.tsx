@@ -1238,6 +1238,7 @@ export default function PromptPage({ initialData }: PromptPageProps = {}) {
           businessName: businessProfile?.name,
           aboutBusiness: businessProfile?.about_us,
           servicesOffered: businessProfile?.services_offered,
+          companyValues: businessProfile?.company_values,
           targetWordCount: wordLimit,
           currentWordCount: currentWordCount
         }),

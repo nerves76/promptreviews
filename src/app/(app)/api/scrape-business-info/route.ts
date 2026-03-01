@@ -7,9 +7,12 @@
 
 import { NextRequest, NextResponse } from "next/server";
 import { createServerSupabaseClient } from "@/auth/providers/supabase";
+import { createServiceRoleClient } from "@/auth/providers/supabase";
 import { getRequestAccountId } from "@/app/(app)/api/utils/getRequestAccountId";
 import OpenAI from "openai";
 import * as cheerio from "cheerio";
+
+const LIFETIME_SCRAPE_LIMIT = 5;
 
 const openai = new OpenAI({ apiKey: process.env.OPENAI_API_KEY });
 
@@ -253,6 +256,20 @@ export async function POST(request: NextRequest) {
       return NextResponse.json({ error: "No valid account found" }, { status: 403 });
     }
 
+    // Check lifetime usage limit
+    const serviceSupabase = createServiceRoleClient();
+    const { count: usageCount } = await serviceSupabase
+      .from("scrape_business_info_usage")
+      .select("id", { count: "exact", head: true })
+      .eq("account_id", accountId);
+
+    if ((usageCount ?? 0) >= LIFETIME_SCRAPE_LIMIT) {
+      return NextResponse.json(
+        { error: "You reached limit of 5 attempts. You will need to enter additional info manually or contact support." },
+        { status: 429 }
+      );
+    }
+
     // Parse request body
     const body = await request.json();
     const { url } = body;
@@ -428,10 +445,20 @@ Return ONLY valid JSON, no markdown or explanation.`;
     // Add the original URL as business_website
     result.name = result.name || undefined;
 
+    // Record usage after successful extraction
+    await serviceSupabase.from("scrape_business_info_usage").insert({
+      account_id: accountId,
+      user_id: user.id,
+      website_url: url,
+    });
+
+    const remaining = LIFETIME_SCRAPE_LIMIT - (usageCount ?? 0) - 1;
+
     return NextResponse.json({
       success: true,
       data: result,
       url: url, // Return the URL so it can be used to fill business_website
+      remaining,
     });
 
   } catch (error) {

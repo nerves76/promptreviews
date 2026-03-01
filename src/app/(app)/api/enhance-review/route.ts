@@ -38,6 +38,7 @@ export async function POST(request: NextRequest) {
       businessName,
       aboutBusiness,
       servicesOffered,
+      companyValues,
       targetWordCount,
       currentWordCount
     } = await request.json();
@@ -90,6 +91,15 @@ WORD COUNT: The review is currently ${currentWordCount} words. Do NOT exceed ${t
       }
     }
 
+    // Format company values (limit to 5)
+    let valuesText = "";
+    if (companyValues && typeof companyValues === "string" && companyValues.trim()) {
+      const valuesLines = companyValues.split("\n").filter((l: string) => l.trim()).slice(0, 5);
+      if (valuesLines.length > 0) {
+        valuesText = valuesLines.join(", ");
+      }
+    }
+
     // Add business context for depth expansion when review is very short
     if (isVeryShort && (businessName || aboutBusiness || servicesOffered)) {
       systemPrompt += `
@@ -116,6 +126,9 @@ To help expand the review, here is context about the business:`;
           systemPrompt += ` Services offered: ${services}.`;
         }
       }
+      if (valuesText) {
+        systemPrompt += ` Core values: ${valuesText}.`;
+      }
 
       systemPrompt += `
 
@@ -124,6 +137,9 @@ Use this context to add depth that feels like a natural extension of what the cu
       // Review is moderately short — provide lighter business context
       if (businessName) {
         systemPrompt += ` The business is "${businessName}".`;
+      }
+      if (valuesText) {
+        systemPrompt += ` Core values: ${valuesText}.`;
       }
       systemPrompt += ` Add 1-2 sentences of relevant detail that feel authentic to the customer's experience.`;
     }
