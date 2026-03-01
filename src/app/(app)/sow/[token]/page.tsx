@@ -187,6 +187,14 @@ export default async function ProposalPage({ params }: { params: Promise<{ token
     }
   }
 
+  // DEBUG: Log business profile background values to identify white background issue
+  console.log('[SOW-DEBUG] businessProfile exists:', !!businessProfile);
+  console.log('[SOW-DEBUG] background_type:', businessProfile?.background_type);
+  console.log('[SOW-DEBUG] gradient_start:', businessProfile?.gradient_start);
+  console.log('[SOW-DEBUG] gradient_middle:', businessProfile?.gradient_middle);
+  console.log('[SOW-DEBUG] gradient_end:', businessProfile?.gradient_end);
+  console.log('[SOW-DEBUG] background_color:', businessProfile?.background_color);
+
   // Build style config from business profile or defaults
   const styleConfig = {
     primaryFont: businessProfile?.primary_font || GLASSY_DEFAULTS.primary_font,
@@ -212,16 +220,27 @@ export default async function ProposalPage({ params }: { params: Promise<{ token
     addressState: businessProfile?.address_state || null,
   };
 
+  // DEBUG: Compute what getBackground would return
+  const debugBg = styleConfig.backgroundType === 'solid'
+    ? styleConfig.backgroundColor
+    : `linear-gradient(to bottom, ${styleConfig.gradientStart}, ${styleConfig.gradientMiddle}, ${styleConfig.gradientEnd})`;
+
   return (
-    <ProposalPageClient
-      proposal={proposal}
-      signature={signature}
-      styleConfig={styleConfig}
-      token={token}
-      sowPrefix={sowPrefix}
-      senderSignature={senderSignature}
-      isOwner={isOwner}
-      proposalId={isOwner ? proposal.id : null}
-    />
+    <>
+      <ProposalPageClient
+        proposal={proposal}
+        signature={signature}
+        styleConfig={styleConfig}
+        token={token}
+        sowPrefix={sowPrefix}
+        senderSignature={senderSignature}
+        isOwner={isOwner}
+        proposalId={isOwner ? proposal.id : null}
+      />
+      {/* DEBUG: Remove after fixing background issue */}
+      <div style={{ position: 'fixed', bottom: 0, left: 0, right: 0, background: '#000', color: '#0f0', fontSize: '11px', padding: '4px 8px', zIndex: 9999, fontFamily: 'monospace', opacity: 0.9 }}>
+        BG: {debugBg} | type: {styleConfig.backgroundType} | biz: {businessProfile ? 'yes' : 'null'} | start: {styleConfig.gradientStart} | mid: {styleConfig.gradientMiddle} | end: {styleConfig.gradientEnd}
+      </div>
+    </>
   );
 }
