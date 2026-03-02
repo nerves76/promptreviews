@@ -12,6 +12,7 @@ import { ProposalLineItemsEditor } from './ProposalLineItemsEditor';
 import { ProposalCustomSectionsEditor } from './ProposalCustomSectionsEditor';
 import { SavedTermsModal } from './SavedTermsModal';
 import { SaveTermsModal } from './SaveTermsModal';
+import FallingStarsFeature from '@/app/(app)/components/prompt-features/FallingStarsFeature';
 
 interface ContactSuggestion {
   id: string;
@@ -112,6 +113,11 @@ export function ProposalEditor({ proposal, mode, basePath, defaultIsTemplate = f
   const [savedSignatures, setSavedSignatures] = useState<SavedSignature[]>([]);
   const [signaturesLoading, setSignaturesLoading] = useState(true);
 
+  // Falling icon state
+  const [fallingEnabled, setFallingEnabled] = useState(!!proposal?.falling_icon);
+  const [fallingIcon, setFallingIcon] = useState(proposal?.falling_icon || 'star');
+  const [fallingIconColor, setFallingIconColor] = useState(proposal?.falling_icon_color || '#fbbf24');
+
   // Fetch SOW prefix on mount
   useEffect(() => {
     async function fetchSowPrefix() {
@@ -168,6 +174,9 @@ export function ProposalEditor({ proposal, mode, basePath, defaultIsTemplate = f
       setTaxEnabled((proposal.tax_rate ?? 0) > 0);
       setRequireSignature(proposal.require_signature ?? true);
       setSenderSignatureId(proposal.sender_signature_id || null);
+      setFallingEnabled(!!proposal.falling_icon);
+      setFallingIcon(proposal.falling_icon || 'star');
+      setFallingIconColor(proposal.falling_icon_color || '#fbbf24');
     }
   }, [proposal, mode]);
 
@@ -288,6 +297,8 @@ export function ProposalEditor({ proposal, mode, basePath, defaultIsTemplate = f
         tax_rate: taxRate,
         sender_signature_id: senderSignatureId,
         require_signature: requireSignature,
+        falling_icon: fallingEnabled ? fallingIcon : null,
+        falling_icon_color: fallingEnabled ? fallingIconColor : null,
       };
 
       if (mode === 'create') {
@@ -975,6 +986,19 @@ export function ProposalEditor({ proposal, mode, basePath, defaultIsTemplate = f
             </button>
           </div>
         </div>
+      )}
+
+      {/* Falling icon animation — hidden for templates */}
+      {!isTemplate && (
+        <FallingStarsFeature
+          enabled={fallingEnabled}
+          icon={fallingIcon}
+          color={fallingIconColor}
+          onEnabledChange={setFallingEnabled}
+          onIconChange={setFallingIcon}
+          onColorChange={setFallingIconColor}
+          disabled={!!isReadOnly}
+        />
       )}
 
       {/* Terms template modals */}

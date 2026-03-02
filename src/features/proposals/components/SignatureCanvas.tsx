@@ -12,6 +12,7 @@ export function SignatureCanvas({ onSignatureChange, borderColor = '#d1d5db', te
   const canvasRef = useRef<HTMLCanvasElement>(null);
   const [isDrawing, setIsDrawing] = useState(false);
   const [hasDrawn, setHasDrawn] = useState(false);
+  const firstDrawRef = useRef(false);
 
   const getContext = useCallback(() => {
     const canvas = canvasRef.current;
@@ -57,12 +58,8 @@ export function SignatureCanvas({ onSignatureChange, borderColor = '#d1d5db', te
 
   const startDrawing = (e: React.MouseEvent | React.TouchEvent) => {
     e.preventDefault();
-    const ctx = getContext();
-    if (!ctx) return;
-    const pos = getPosition(e);
-    ctx.beginPath();
-    ctx.moveTo(pos.x, pos.y);
     setIsDrawing(true);
+    firstDrawRef.current = true;
   };
 
   const draw = (e: React.MouseEvent | React.TouchEvent) => {
@@ -71,6 +68,16 @@ export function SignatureCanvas({ onSignatureChange, borderColor = '#d1d5db', te
     const ctx = getContext();
     if (!ctx) return;
     const pos = getPosition(e);
+
+    if (firstDrawRef.current) {
+      // Defer path start to first move event to avoid spurious line
+      // caused by layout shift between mousedown/touchstart and first move
+      ctx.beginPath();
+      ctx.moveTo(pos.x, pos.y);
+      firstDrawRef.current = false;
+      return;
+    }
+
     ctx.lineTo(pos.x, pos.y);
     ctx.stroke();
     if (!hasDrawn) setHasDrawn(true);

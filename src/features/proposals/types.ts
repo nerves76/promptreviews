@@ -135,6 +135,8 @@ export interface Proposal {
   tax_rate?: number;
   sender_signature_id?: string | null;
   require_signature?: boolean;
+  falling_icon?: string | null;
+  falling_icon_color?: string | null;
   created_at: string;
   updated_at: string;
   // Joined data
@@ -200,6 +202,8 @@ export interface CreateProposalRequest {
   tax_rate?: number;
   sender_signature_id?: string | null;
   require_signature?: boolean;
+  falling_icon?: string | null;
+  falling_icon_color?: string | null;
   is_template?: boolean;
   template_name?: string;
 }

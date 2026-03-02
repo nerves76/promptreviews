@@ -1299,12 +1299,7 @@ export default function BusinessProfilePage() {
         </button>
       </div>
 
-      {/* Bottom error and success messages */}
-      {error && (
-        <div className="mt-6 p-4 bg-red-50 text-red-700 rounded-md text-base font-medium border border-red-200">
-          {error}
-        </div>
-      )}
+      {/* Bottom success message */}
       {success && (
         <div className="mt-6 p-4 bg-green-50 text-green-700 rounded-md text-base font-medium border border-green-200">
           {success}

@@ -144,6 +144,8 @@ export async function POST(request: NextRequest) {
         tax_rate: body.tax_rate ?? 0,
         sender_signature_id: body.sender_signature_id || null,
         require_signature: body.require_signature ?? true,
+        falling_icon: body.falling_icon || null,
+        falling_icon_color: body.falling_icon_color || null,
       })
       .select()
       .single();

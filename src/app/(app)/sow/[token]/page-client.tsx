@@ -9,7 +9,8 @@ import { SignatureCanvas } from '@/features/proposals/components/SignatureCanvas
 import { Proposal } from '@/features/proposals/types';
 import { exportProposalToPdf } from '@/features/proposals/utils/pdfExport';
 import { apiClient } from '@/utils/apiClient';
-import StarfallCelebration from '@/app/(app)/components/StarfallCelebration';
+import FallingAnimation from '@/app/(app)/r/[slug]/components/FallingAnimation';
+import { getFallingIcon } from '@/app/(app)/components/prompt-modules/fallingStarsConfig';
 
 interface ProposalPageClientProps {
   proposal: Proposal;
@@ -76,6 +77,13 @@ export default function ProposalPageClient({ proposal, signature, styleConfig, t
 
   // Owner hash verification state
   const [hashVerified, setHashVerified] = useState<boolean | null>(null);
+
+  // Auto-dismiss falling animation after 5 seconds
+  useEffect(() => {
+    if (!showCelebration) return;
+    const timer = setTimeout(() => setShowCelebration(false), 5000);
+    return () => clearTimeout(timer);
+  }, [showCelebration]);
 
   const cardBg = applyCardTransparency(styleConfig.cardBg, styleConfig.cardTransparency);
   const cardBorder = getCardBorderStyle(styleConfig);
@@ -192,7 +200,14 @@ export default function ProposalPageClient({ proposal, signature, styleConfig, t
 
   return (
     <>
-      <StarfallCelebration isVisible={showCelebration} onComplete={() => setShowCelebration(false)} duration={4000} />
+      {showCelebration && proposal.falling_icon && (
+        <FallingAnimation
+          fallingIcon={proposal.falling_icon}
+          showStarRain={showCelebration}
+          falling_icon_color={proposal.falling_icon_color ?? undefined}
+          getFallingIcon={getFallingIcon}
+        />
+      )}
 
       {/* Owner floating action bar — left side */}
       {isOwner && (

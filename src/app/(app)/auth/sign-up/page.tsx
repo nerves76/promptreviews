@@ -388,7 +388,7 @@ function SignUpContent() {
         
         <form
           onSubmit={handleSubmit}
-          className="mt-8 p-8 rounded-2xl shadow-2xl w-full max-w-md space-y-6 bg-white/90 backdrop-blur-sm border-2 border-white"
+          className="mt-8 p-8 rounded-2xl shadow-xl w-full max-w-md space-y-6 bg-white/90 backdrop-blur-sm border border-white/50"
         >
           <div>
             <label htmlFor="signup-firstname" className="block font-medium mb-1">First name</label>

@@ -114,6 +114,7 @@ export async function PUT(request: NextRequest, context: RouteContext) {
       'is_template', 'template_name', 'status',
       'discount_type', 'discount_value', 'tax_rate',
       'sender_signature_id', 'require_signature',
+      'falling_icon', 'falling_icon_color',
     ];
 
     for (const field of allowedFields) {
