@@ -108,6 +108,7 @@ export function ProposalEditor({ proposal, mode, basePath, defaultIsTemplate = f
 
   // Sender signature state
   const [senderSignatureId, setSenderSignatureId] = useState<string | null>(proposal?.sender_signature_id || null);
+  const [senderSigEnabled, setSenderSigEnabled] = useState(!!proposal?.sender_signature_id);
   const [savedSignatures, setSavedSignatures] = useState<SavedSignature[]>([]);
   const [signaturesLoading, setSignaturesLoading] = useState(true);
 
@@ -890,56 +891,65 @@ export function ProposalEditor({ proposal, mode, basePath, defaultIsTemplate = f
             <button
               type="button"
               onClick={() => {
-                if (senderSignatureId) {
+                const next = !senderSigEnabled;
+                setSenderSigEnabled(next);
+                if (!next) {
                   setSenderSignatureId(null);
                 } else if (savedSignatures.length > 0) {
                   setSenderSignatureId(savedSignatures[0].id);
                 }
               }}
-              disabled={!!isReadOnly || (savedSignatures.length === 0 && !signaturesLoading)}
-              className={`relative inline-flex h-6 w-11 shrink-0 items-center rounded-full transition-colors focus:outline-none disabled:opacity-50 ${senderSignatureId ? 'bg-slate-blue' : 'bg-gray-300'}`}
-              aria-pressed={!!senderSignatureId}
+              disabled={!!isReadOnly}
+              className={`relative inline-flex h-6 w-11 shrink-0 items-center rounded-full transition-colors focus:outline-none disabled:opacity-50 ${senderSigEnabled ? 'bg-slate-blue' : 'bg-gray-300'}`}
+              aria-pressed={senderSigEnabled}
               aria-label="Toggle sender signature"
             >
-              <span className={`inline-block h-4 w-4 transform rounded-full bg-white shadow transition-transform ${senderSignatureId ? 'translate-x-5' : 'translate-x-1'}`} />
+              <span className={`inline-block h-4 w-4 transform rounded-full bg-white shadow transition-transform ${senderSigEnabled ? 'translate-x-5' : 'translate-x-1'}`} />
             </button>
           </div>
-          {signaturesLoading ? (
-            <p className="text-sm text-gray-500 mt-3">Loading signatures...</p>
-          ) : savedSignatures.length === 0 ? (
-            <p className="text-xs text-gray-500 mt-3">
-              No saved signatures.{' '}
-              <a href="/agency/contracts" className="text-slate-blue hover:text-slate-blue/80 underline">
-                Create one
-              </a>{' '}
-              in the Signatures tab.
-            </p>
-          ) : senderSignatureId && (
-            <div className="mt-4 space-y-3">
-              <select
-                id="sender-signature"
-                value={senderSignatureId || ''}
-                onChange={(e) => setSenderSignatureId(e.target.value || null)}
-                disabled={!!isReadOnly}
-                className="border border-gray-300 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-slate-blue focus:ring-offset-1 w-full sm:w-64"
-                aria-label="Select sender signature"
-              >
-                {savedSignatures.map((sig) => (
-                  <option key={sig.id} value={sig.id}>{sig.name}</option>
-                ))}
-              </select>
-              {(() => {
-                const selected = savedSignatures.find((s) => s.id === senderSignatureId);
-                return selected?.signature_image_url ? (
-                  <div>
-                    <img
-                      src={selected.signature_image_url}
-                      alt={`Signature by ${selected.name}`}
-                      className="h-12 max-w-[200px] object-contain rounded bg-gray-50 border border-gray-200 p-1"
-                    />
-                  </div>
-                ) : null;
-              })()}
+          {senderSigEnabled && (
+            <div className="mt-4">
+              {signaturesLoading ? (
+                <p className="text-sm text-gray-500">Loading signatures...</p>
+              ) : savedSignatures.length === 0 ? (
+                <div className="flex items-start gap-2 p-3 bg-amber-50 border border-amber-200 rounded-lg text-sm text-amber-800">
+                  <Icon name="FaInfoCircle" size={14} className="mt-0.5 shrink-0" />
+                  <p>
+                    No saved signatures yet.{' '}
+                    <a href="/agency/contracts" className="text-slate-blue hover:text-slate-blue/80 underline font-medium">
+                      Create one
+                    </a>{' '}
+                    in the Signatures tab, then come back to select it here.
+                  </p>
+                </div>
+              ) : (
+                <div className="space-y-3">
+                  <select
+                    id="sender-signature"
+                    value={senderSignatureId || ''}
+                    onChange={(e) => setSenderSignatureId(e.target.value || null)}
+                    disabled={!!isReadOnly}
+                    className="border border-gray-300 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-slate-blue focus:ring-offset-1 w-full sm:w-64"
+                    aria-label="Select sender signature"
+                  >
+                    {savedSignatures.map((sig) => (
+                      <option key={sig.id} value={sig.id}>{sig.name}</option>
+                    ))}
+                  </select>
+                  {(() => {
+                    const selected = savedSignatures.find((s) => s.id === senderSignatureId);
+                    return selected?.signature_image_url ? (
+                      <div>
+                        <img
+                          src={selected.signature_image_url}
+                          alt={`Signature by ${selected.name}`}
+                          className="h-12 max-w-[200px] object-contain rounded bg-gray-50 border border-gray-200 p-1"
+                        />
+                      </div>
+                    ) : null;
+                  })()}
+                </div>
+              )}
             </div>
           )}
         </div>
