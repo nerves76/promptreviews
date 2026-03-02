@@ -9,6 +9,7 @@ import { SignatureCanvas } from '@/features/proposals/components/SignatureCanvas
 import { Proposal } from '@/features/proposals/types';
 import { exportProposalToPdf } from '@/features/proposals/utils/pdfExport';
 import { apiClient } from '@/utils/apiClient';
+import StarfallCelebration from '@/app/(app)/components/StarfallCelebration';
 
 interface ProposalPageClientProps {
   proposal: Proposal;
@@ -66,6 +67,7 @@ export default function ProposalPageClient({ proposal, signature, styleConfig, t
   const [submitting, setSubmitting] = useState(false);
   const [submitError, setSubmitError] = useState<string | null>(null);
   const [signed, setSigned] = useState(!!signature);
+  const [showCelebration, setShowCelebration] = useState(false);
 
   // Owner send state
   const [sending, setSending] = useState(false);
@@ -153,6 +155,7 @@ export default function ProposalPageClient({ proposal, signature, styleConfig, t
       }
 
       setSigned(true);
+      setShowCelebration(true);
     } catch (err: any) {
       setSubmitError(err.message || 'Something went wrong');
     } finally {
@@ -189,6 +192,8 @@ export default function ProposalPageClient({ proposal, signature, styleConfig, t
 
   return (
     <>
+      <StarfallCelebration isVisible={showCelebration} onComplete={() => setShowCelebration(false)} duration={4000} />
+
       {/* Owner floating action bar — left side */}
       {isOwner && (
         <div className="fixed left-4 top-4 z-[60]">
@@ -337,17 +342,21 @@ export default function ProposalPageClient({ proposal, signature, styleConfig, t
         {/* Recipient view: signed confirmation or signature form */}
         {!isOwner && signed && (
           <div className="mt-8 pt-6 border-t" style={{ borderColor: `${styleConfig.cardText}22` }}>
-            <div className="flex items-center gap-2 mb-2">
-              <Icon name="FaCheckCircle" size={20} className="text-green-500" />
-              <span className="text-lg font-semibold" style={{ color: styleConfig.cardText }}>
-                Accepted
-              </span>
+            <div className="flex items-center gap-3 mb-3">
+              <div className="flex items-center justify-center w-10 h-10 rounded-full bg-green-100">
+                <Icon name="FaCheckCircle" size={22} className="text-green-600" />
+              </div>
+              <div>
+                <span className="text-lg font-semibold block" style={{ color: styleConfig.cardText }}>
+                  Contract signed
+                </span>
+                <p className="text-sm opacity-70" style={{ color: styleConfig.cardText }}>
+                  {signature
+                    ? `Signed by ${signature.signer_name} on ${new Date(signature.signed_at).toLocaleDateString('en-US', { year: 'numeric', month: 'long', day: 'numeric' })}`
+                    : 'Thank you for signing this contract!'}
+                </p>
+              </div>
             </div>
-            <p className="text-sm opacity-70" style={{ color: styleConfig.cardText }}>
-              {signature
-                ? `Signed by ${signature.signer_name} on ${new Date(signature.signed_at).toLocaleDateString('en-US', { year: 'numeric', month: 'long', day: 'numeric' })}`
-                : 'Thank you for signing!'}
-            </p>
             {signature?.signature_image_url && (
               <div className="mt-3">
                 <img
