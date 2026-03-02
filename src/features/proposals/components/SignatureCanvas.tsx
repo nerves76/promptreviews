@@ -13,6 +13,7 @@ export function SignatureCanvas({ onSignatureChange, borderColor = '#d1d5db', te
   const [isDrawing, setIsDrawing] = useState(false);
   const [hasDrawn, setHasDrawn] = useState(false);
   const firstDrawRef = useRef(false);
+  const canvasReadyRef = useRef(false);
 
   const getContext = useCallback(() => {
     const canvas = canvasRef.current;
@@ -27,17 +28,22 @@ export function SignatureCanvas({ onSignatureChange, borderColor = '#d1d5db', te
     return ctx;
   }, []);
 
-  // Set canvas size on mount
-  useEffect(() => {
+  // Initialize canvas bitmap dimensions to match CSS size (2x for HiDPI).
+  // Called lazily on first interaction so that modal animations have settled
+  // and getBoundingClientRect returns the correct final dimensions.
+  const ensureCanvasReady = useCallback(() => {
+    if (canvasReadyRef.current) return;
     const canvas = canvasRef.current;
     if (!canvas) return;
     const rect = canvas.getBoundingClientRect();
+    if (rect.width === 0 || rect.height === 0) return;
     canvas.width = rect.width * 2;
     canvas.height = rect.height * 2;
     const ctx = canvas.getContext('2d');
     if (ctx) {
       ctx.scale(2, 2);
     }
+    canvasReadyRef.current = true;
   }, []);
 
   const getPosition = (e: React.MouseEvent | React.TouchEvent) => {
@@ -58,6 +64,7 @@ export function SignatureCanvas({ onSignatureChange, borderColor = '#d1d5db', te
 
   const startDrawing = (e: React.MouseEvent | React.TouchEvent) => {
     e.preventDefault();
+    ensureCanvasReady();
     setIsDrawing(true);
     firstDrawRef.current = true;
   };
