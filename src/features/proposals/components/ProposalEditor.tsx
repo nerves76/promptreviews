@@ -879,40 +879,59 @@ export function ProposalEditor({ proposal, mode, basePath, defaultIsTemplate = f
         )}
       </div>
 
-      {/* Sender signature */}
+      {/* Sender signature toggle card */}
       {!isTemplate && (
-        <div>
-          <label htmlFor="sender-signature" className="block text-sm font-medium text-gray-700 mb-1">
-            Sender signature
-          </label>
+        <div className="rounded-lg border border-gray-200 bg-gray-50 p-4 sm:p-5">
+          <div className="flex items-start justify-between">
+            <div>
+              <h3 className="text-sm font-semibold text-gray-900">Sender signature</h3>
+              <p className="text-xs text-gray-500 mt-0.5">Display your signature on the contract.</p>
+            </div>
+            <button
+              type="button"
+              onClick={() => {
+                if (senderSignatureId) {
+                  setSenderSignatureId(null);
+                } else if (savedSignatures.length > 0) {
+                  setSenderSignatureId(savedSignatures[0].id);
+                }
+              }}
+              disabled={!!isReadOnly || (savedSignatures.length === 0 && !signaturesLoading)}
+              className={`relative inline-flex h-6 w-11 shrink-0 items-center rounded-full transition-colors focus:outline-none disabled:opacity-50 ${senderSignatureId ? 'bg-slate-blue' : 'bg-gray-300'}`}
+              aria-pressed={!!senderSignatureId}
+              aria-label="Toggle sender signature"
+            >
+              <span className={`inline-block h-4 w-4 transform rounded-full bg-white shadow transition-transform ${senderSignatureId ? 'translate-x-5' : 'translate-x-1'}`} />
+            </button>
+          </div>
           {signaturesLoading ? (
-            <p className="text-sm text-gray-500">Loading signatures...</p>
+            <p className="text-sm text-gray-500 mt-3">Loading signatures...</p>
           ) : savedSignatures.length === 0 ? (
-            <p className="text-sm text-gray-500">
+            <p className="text-xs text-gray-500 mt-3">
               No saved signatures.{' '}
               <a href="/agency/contracts" className="text-slate-blue hover:text-slate-blue/80 underline">
                 Create one
               </a>{' '}
               in the Signatures tab.
             </p>
-          ) : (
-            <>
+          ) : senderSignatureId && (
+            <div className="mt-4 space-y-3">
               <select
                 id="sender-signature"
                 value={senderSignatureId || ''}
                 onChange={(e) => setSenderSignatureId(e.target.value || null)}
                 disabled={!!isReadOnly}
                 className="border border-gray-300 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-slate-blue focus:ring-offset-1 w-full sm:w-64"
+                aria-label="Select sender signature"
               >
-                <option value="">None</option>
                 {savedSignatures.map((sig) => (
                   <option key={sig.id} value={sig.id}>{sig.name}</option>
                 ))}
               </select>
-              {senderSignatureId && (() => {
+              {(() => {
                 const selected = savedSignatures.find((s) => s.id === senderSignatureId);
                 return selected?.signature_image_url ? (
-                  <div className="mt-2">
+                  <div>
                     <img
                       src={selected.signature_image_url}
                       alt={`Signature by ${selected.name}`}
@@ -921,7 +940,7 @@ export function ProposalEditor({ proposal, mode, basePath, defaultIsTemplate = f
                   </div>
                 ) : null;
               })()}
-            </>
+            </div>
           )}
         </div>
       )}
