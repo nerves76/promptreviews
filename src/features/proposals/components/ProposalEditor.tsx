@@ -931,8 +931,8 @@ export function ProposalEditor({ proposal, mode, basePath, defaultIsTemplate = f
         <div className="rounded-lg border border-gray-200 bg-gray-50 p-4 sm:p-5">
           <div className="flex items-start justify-between">
             <div>
-              <h3 className="text-sm font-semibold text-gray-900">Require client signature</h3>
-              <p className="text-xs text-gray-500 mt-0.5">When disabled, the client can view the contract but won&apos;t be asked to sign.</p>
+              <h3 className="text-sm font-semibold text-gray-900">Client signature</h3>
+              <p className="text-xs text-gray-500 mt-0.5">When enabled, the client will be asked to sign the contract.</p>
             </div>
             <button
               type="button"
