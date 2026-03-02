@@ -1,6 +1,6 @@
 'use client';
 
-import { useRef, useState, useEffect, useCallback } from 'react';
+import { useRef, useState, useCallback } from 'react';
 
 interface SignatureCanvasProps {
   onSignatureChange: (dataUrl: string | null) => void;
@@ -10,9 +10,8 @@ interface SignatureCanvasProps {
 
 export function SignatureCanvas({ onSignatureChange, borderColor = '#d1d5db', textColor = '#6b7280' }: SignatureCanvasProps) {
   const canvasRef = useRef<HTMLCanvasElement>(null);
-  const [isDrawing, setIsDrawing] = useState(false);
+  const isDrawingRef = useRef(false);
   const [hasDrawn, setHasDrawn] = useState(false);
-  const firstDrawRef = useRef(false);
   const canvasReadyRef = useRef(false);
 
   const getContext = useCallback(() => {
@@ -65,36 +64,30 @@ export function SignatureCanvas({ onSignatureChange, borderColor = '#d1d5db', te
   const startDrawing = (e: React.MouseEvent | React.TouchEvent) => {
     e.preventDefault();
     ensureCanvasReady();
-    setIsDrawing(true);
-    firstDrawRef.current = true;
+    const ctx = getContext();
+    if (!ctx) return;
+    const pos = getPosition(e);
+    ctx.beginPath();
+    ctx.moveTo(pos.x, pos.y);
+    isDrawingRef.current = true;
   };
 
   const draw = (e: React.MouseEvent | React.TouchEvent) => {
     e.preventDefault();
-    if (!isDrawing) return;
+    if (!isDrawingRef.current) return;
     const ctx = getContext();
     if (!ctx) return;
     const pos = getPosition(e);
-
-    if (firstDrawRef.current) {
-      // Defer path start to first move event to avoid spurious line
-      // caused by layout shift between mousedown/touchstart and first move
-      ctx.beginPath();
-      ctx.moveTo(pos.x, pos.y);
-      firstDrawRef.current = false;
-      return;
-    }
-
     ctx.lineTo(pos.x, pos.y);
     ctx.stroke();
     if (!hasDrawn) setHasDrawn(true);
   };
 
   const stopDrawing = () => {
-    if (!isDrawing) return;
-    setIsDrawing(false);
+    if (!isDrawingRef.current) return;
+    isDrawingRef.current = false;
     const canvas = canvasRef.current;
-    if (canvas && hasDrawn) {
+    if (canvas) {
       onSignatureChange(canvas.toDataURL('image/png'));
     }
   };
